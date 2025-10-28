@@ -29,18 +29,12 @@ import { UserPlus, LogIn, FileEdit, Upload, ArrowRight } from "lucide-vue-next"
           document exchange, and progress tracking.
         </p>
         <div class="flex justify-center space-x-4">
-          <a
-            href="#"
-            class="bg-indigo-600 text-white px-6 py-3 rounded-lg shadow hover:bg-indigo-700 font-medium"
-          >
-            Register as Student
-          </a>
-          <a
-            href="#"
-            class="bg-gray-200 px-6 py-3 rounded-lg shadow hover:bg-gray-300 font-medium"
-          >
-            Register as Company
-          </a>
+          <router-link to="/register/student" class="bg-indigo-600 text-white px-6 py-3 rounded-lg shadow hover:bg-indigo-700 font-medium">
+  Register as Student
+</router-link>
+          <router-link to="/register/company" class="bg-gray-200 px-6 py-3 rounded-lg shadow hover:bg-gray-300 font-medium">
+  Register as Company
+</router-link>
         </div>
       </div>
     </section>
