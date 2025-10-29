@@ -1,6 +1,17 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-6">
     <div class="max-w-md w-full bg-white rounded-2xl shadow-md p-8">
+      <!-- Back Arrow Box в левом верхнем углу -->
+    <div 
+  class="absolute top-6 left-6 w-16 h-16 flex items-center justify-center bg-indigo-50 rounded-lg cursor-pointer hover:bg-indigo-100"
+  @click="goBack"
+>
+  <span class="text-indigo-600 text-5xl font-bold">←</span>
+</div>
+
+
+
+
       <h1 class="text-2xl font-bold text-indigo-700 mb-6 text-center">
         Company Registration
       </h1>
@@ -123,6 +134,13 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const goBack = () => {
+  router.back() // вернёт на предыдущий маршрут
+}
 import { ref } from 'vue'
 
 const form = ref({
