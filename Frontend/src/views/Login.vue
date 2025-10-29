@@ -3,6 +3,13 @@
     <div
       class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 border border-gray-100 transition-all duration-300 hover:shadow-xl"
     >
+    <!-- Back Arrow Box в левом верхнем углу -->
+    <div 
+  class="absolute top-6 left-6 w-16 h-16 flex items-center justify-center bg-indigo-50 rounded-lg cursor-pointer hover:bg-indigo-100"
+  @click="goBack"
+>
+  <span class="text-indigo-600 text-5xl font-bold">←</span>
+</div>
       <h1 class="text-3xl font-bold text-center text-indigo-600 mb-6">Login</h1>
 
       <!-- Role Selector -->
@@ -104,6 +111,9 @@ const studentId = ref('')
 const companyCode = ref('')
 const guarantorKey = ref('')
 const error = ref('')
+const goBack = () => {
+  router.back() // вернёт на предыдущий маршрут
+}
 
 const login = () => {
   if (!role.value) {

@@ -6,17 +6,19 @@ import { UserPlus, LogIn, FileEdit, Upload, ArrowRight } from "lucide-vue-next"
   <div class="bg-gray-50 text-gray-800">
     <!-- NAVBAR -->
     <nav class="bg-white shadow-sm fixed w-full top-0 left-0 z-10">
-      <div class="max-w-7xl mx-auto flex justify-between items-center py-3 px-6">
-        <h1 class="text-2xl font-bold text-indigo-600">Internship Portal</h1>
-        <div class="space-x-4">
-          <a href="#" class="text-gray-600 hover:text-indigo-600 font-medium">Login</a>
-          <a
-            href="#"
-            class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 font-medium"
-          >Register</a>
-        </div>
-      </div>
-    </nav>
+  <div class="max-w-7xl mx-auto flex justify-between items-center py-3 px-6">
+    <h1 class="text-2xl font-bold text-indigo-600">Internship Portal</h1>
+    <div class="space-x-4">
+      <!-- 🔹 Кнопка регистрации -->
+      <router-link
+        to="/login"
+        class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 font-medium"
+      >
+        Login
+      </router-link>
+    </div>
+  </div>
+</nav>
 
     <!-- HERO SECTION -->
     <section class="pt-24 pb-16 bg-gradient-to-r from-indigo-50 to-white text-center">
@@ -180,11 +182,14 @@ import { UserPlus, LogIn, FileEdit, Upload, ArrowRight } from "lucide-vue-next"
           to update internship statuses or retrieve data.
         </p>
         <a
-          href="#"
-          class="bg-white text-indigo-600 px-5 py-2 rounded font-medium hover:bg-gray-100"
-        >
-          Learn More
-        </a>
+  href="https://auth0.com/intro-to-iam/what-is-oauth-2"
+  target="_blank"
+  rel="noopener noreferrer"
+  class="bg-white text-indigo-600 px-5 py-2 rounded font-medium hover:bg-gray-100"
+>
+  Learn More
+</a>
+
       </div>
     </section>
 
