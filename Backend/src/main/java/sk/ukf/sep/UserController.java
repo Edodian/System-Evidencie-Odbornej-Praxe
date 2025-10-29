@@ -16,15 +16,15 @@ public class UserController {
     }
 
     @PostMapping("/student")
-    public User registerStudent(
+    public String registerStudent(
             @RequestBody User student
     ) {
-        String mail = student.getEmail();
-        if (mail.substring(mail.length() - 7).equals("@studentmail.ukf.sk")){
+        System.out.println(student);
+        if (student.getEmail().endsWith("@student.ukf.sk")){
             System.out.println(student);
-            return repository.save(student);
+            return repository.save(student).toString();
         }
-        else return null;
+        else return "Email provided is not UKF student mail";
     }
 
 }
