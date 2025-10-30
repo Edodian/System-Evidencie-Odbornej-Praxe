@@ -36,9 +36,9 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${PROFILE:-dev}
       # These are fallback values, will be overridden by profile-specific configurations
-      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/sep
-      SPRING_DATASOURCE_USERNAME: appuser
-      SPRING_DATASOURCE_PASSWORD: apppassword
+      # SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/sep
+      # SPRING_DATASOURCE_USERNAME: appuser
+      # SPRING_DATASOURCE_PASSWORD: apppassword
     ports:
       - "8081:8081"
       - "5005:5005"  # Debug port

@@ -55,6 +55,15 @@ The application will start with the following components:
 - MariaDB: localhost:3306
 - Mailpit (Email Testing): http://localhost:8025
 
+## Important note
+
+By default Spring application starts in dev profile. It means it uses sep_dev table, witch resets on every start in this profile.
+
+To use app in production profile, when app don't reset data and uses sep table, use a command:
+  ```bash
+   PROFILE=prod docker compose up --build
+   ```
+
 ## Development Access Points
 
 - **Frontend Development Server**

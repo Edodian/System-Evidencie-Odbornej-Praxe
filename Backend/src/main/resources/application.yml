@@ -2,7 +2,7 @@ spring:
   application:
     name: sep
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://localhost:3306/sep}
+    url: jdbc:mariadb://localhost:3306/sep
     username: appuser
     password: apppassword
     driver-class-name: org.mariadb.jdbc.Driver
