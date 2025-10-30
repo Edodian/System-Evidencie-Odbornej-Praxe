@@ -14,4 +14,14 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MariaDBDialect
+  # Mail configuration using Mailpit
+  mail:
+    host: ${SPRING_MAIL_HOST:mailpit}
+    port: ${SPRING_MAIL_PORT:1025}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 server.port: 8081

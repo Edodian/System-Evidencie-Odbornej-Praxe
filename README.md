@@ -53,6 +53,7 @@ The application will start with the following components:
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8081
 - MariaDB: localhost:3306
+- Mailpit (Email Testing): http://localhost:8025
 
 ## Development Access Points
 
@@ -70,6 +71,11 @@ The application will start with the following components:
   - Database: sep
   - User: appuser
   - Password: apppassword
+
+- **Mailpit (Email Testing)**
+  - Web Interface: http://localhost:8025
+  - SMTP Port: 1025
+  - No authentication required
 
 ## Project Structure
 
