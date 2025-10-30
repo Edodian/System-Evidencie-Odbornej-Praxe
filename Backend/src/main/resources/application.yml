@@ -3,8 +3,8 @@ spring:
     name: sep
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://localhost:3306/sep}
-    username: ${SPRING_DATASOURCE_USERNAME:appuser}
-    password: ${SPRING_DATASOURCE_PASSWORD:apppassword}
+    username: appuser
+    password: apppassword
     driver-class-name: org.mariadb.jdbc.Driver
   jpa:
     show-sql: true

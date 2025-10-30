@@ -8,7 +8,7 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: sep
+      MYSQL_DATABASE: sep_dev
       MYSQL_USER: appuser
       MYSQL_PASSWORD: apppassword
       MYSQL_ROOT_HOST: '%'
@@ -34,6 +34,8 @@ services:
     container_name: dev-backend
     restart: unless-stopped
     environment:
+      SPRING_PROFILES_ACTIVE: ${PROFILE:-dev}
+      # These are fallback values, will be overridden by profile-specific configurations
       SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/sep
       SPRING_DATASOURCE_USERNAME: appuser
       SPRING_DATASOURCE_PASSWORD: apppassword

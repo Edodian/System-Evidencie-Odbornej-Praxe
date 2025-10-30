@@ -1,6 +1,8 @@
--- Create database if it doesn't exist
+-- Create databases
+CREATE DATABASE IF NOT EXISTS sep_dev;
 CREATE DATABASE IF NOT EXISTS sep;
 
--- Grant all privileges to appuser
+-- Grant privileges
+GRANT ALL PRIVILEGES ON sep_dev.* TO 'appuser'@'%';
 GRANT ALL PRIVILEGES ON sep.* TO 'appuser'@'%';
 FLUSH PRIVILEGES;
