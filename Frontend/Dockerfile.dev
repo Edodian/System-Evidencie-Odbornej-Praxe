@@ -1,0 +1,21 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Копируем package.json и package-lock.json для кеширования зависимостей
+COPY package*.json ./
+
+# Устанавливаем зависимости
+RUN npm install
+
+# Копируем остальные файлы
+COPY . .
+
+EXPOSE 5173
+
+# Для Vite (если используете Vue 3)
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+
+# Если используете Vue CLI (Vue 2), раскомментируйте:
+# EXPOSE 8081
+# CMD ["npm", "run", "serve"]

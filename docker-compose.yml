@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # MariaDB база данных
+  mariadb:
+    image: mariadb:11.2
+    container_name: dev-mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: sep
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+      MYSQL_ROOT_HOST: '%'
+    ports:
+      - "3306:3306"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./docker/mariadb/init:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot backend
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile.dev
+    container_name: dev-backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/sep
+      SPRING_DATASOURCE_USERNAME: appuser
+      SPRING_DATASOURCE_PASSWORD: apppassword
+    ports:
+      - "8081:8081"
+      - "5005:5005"  # Debug port
+    volumes:
+      - ./Backend:/app
+      - maven_cache:/root/.m2
+    networks:
+      - app-network
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    command: ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+
+  # Vue.js frontend
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile.dev
+    container_name: dev-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:8081
+    ports:
+      - "5173:5173"  # Vite dev server (или 8081 для Vue CLI)
+    volumes:
+      - ./Frontend:/app
+      - /app/node_modules
+    networks:
+      - app-network
+    depends_on:
+      - backend
+    command: npm run dev -- --host 0.0.0.0
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mariadb_data:
+  maven_cache:

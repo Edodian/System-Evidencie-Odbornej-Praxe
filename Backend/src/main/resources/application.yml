@@ -2,13 +2,14 @@ spring:
   application:
     name: sep
   datasource:
-    url: jdbc:mariadb://localhost:3306/sep
-    username: root
-    password: 1
+    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://localhost:3306/sep}
+    username: ${SPRING_DATASOURCE_USERNAME:appuser}
+    password: ${SPRING_DATASOURCE_PASSWORD:apppassword}
     driver-class-name: org.mariadb.jdbc.Driver
   jpa:
     show-sql: true
     hibernate:
+      format_sql: true
       ddl-auto: update
     properties:
       hibernate:
