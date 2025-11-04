@@ -173,26 +173,6 @@ import { UserPlus, LogIn, FileEdit, Upload, ArrowRight } from "lucide-vue-next"
       </div>
     </section>
 
-    <!-- EXTERNAL SYSTEM / API INFO -->
-    <section class="py-12 bg-indigo-600 text-white text-center">
-      <div class="max-w-3xl mx-auto px-6">
-        <h3 class="text-2xl font-semibold mb-4">External Integrations</h3>
-        <p class="text-indigo-100 mb-6">
-          The system supports secure API access via OAuth2 for external systems
-          to update internship statuses or retrieve data.
-        </p>
-        <a
-  href="https://auth0.com/intro-to-iam/what-is-oauth-2"
-  target="_blank"
-  rel="noopener noreferrer"
-  class="bg-white text-indigo-600 px-5 py-2 rounded font-medium hover:bg-gray-100"
->
-  Learn More
-</a>
-
-      </div>
-    </section>
-
     <!-- FOOTER -->
     <footer class="bg-gray-900 text-gray-300 text-center py-6">
       <p>© 2025 Internship Portal. All rights reserved.</p>
