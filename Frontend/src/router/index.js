@@ -15,6 +15,8 @@ const routes = [
   { path: '/login', name: 'Login', component: Login },
   { path: '/register/student', name: 'RegisterStudent', component: RegisterStudent },
   { path: '/register/company', name: 'RegisterCompany', component: RegisterCompany },
+  {path: '/internship/add', name: 'AddInternship', component: () => import('@/views/AddInternship.vue')
+},
 
   // Dashboards by role
   { path: '/dashboard/student', name: 'DashboardStudent', component: DashboardStudent },

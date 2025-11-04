@@ -15,9 +15,19 @@
 
     <!-- Main Content -->
     <main class="max-w-6xl mx-auto py-10 px-6">
-      <h2 class="text-3xl font-bold text-indigo-700 mb-6">
-        Welcome, {{ studentName }}
-      </h2>
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-indigo-700">
+          Welcome, {{ studentName }}
+        </h2>
+
+        <!-- 🔹 Add Internship Button -->
+        <button
+          @click="goToAddInternship"
+          class="bg-indigo-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-all"
+        >
+          + Add Internship
+        </button>
+      </div>
 
       <div class="bg-white shadow-md rounded-2xl p-6">
         <h3 class="text-xl font-semibold mb-4 text-gray-800">Your Internships</h3>
@@ -112,5 +122,10 @@ const viewDetails = (id) => {
 
 const logout = () => {
   router.push('/login')
+}
+
+// 🔹 переход на страницу добавления стажировки
+const goToAddInternship = () => {
+  router.push('/internship/add')
 }
 </script>
