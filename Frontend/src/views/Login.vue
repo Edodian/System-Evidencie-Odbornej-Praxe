@@ -42,6 +42,13 @@
       >
         Log In
       </button>
+      <!-- Под кнопкой Login -->
+<p class="text-center mt-4">
+  <router-link to="/forgot-password" class="text-indigo-600 hover:underline text-sm">
+    Forgot your password?
+  </router-link>
+</p>
+
 
       <!-- Error -->
       <p v-if="error" class="text-red-500 text-sm mt-4 text-center">{{ error }}</p>
