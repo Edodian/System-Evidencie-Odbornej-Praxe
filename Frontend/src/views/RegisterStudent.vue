@@ -104,13 +104,13 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 
 const router = useRouter()
 
 const goBack = () => {
-  router.back() // вернёт на предыдущий маршрут
+  router.back()
 }
-import { ref } from 'vue'
 
 const form = ref({
   name: '',
@@ -126,10 +126,13 @@ const handleSubmit = () => {
   console.log('Submitted form:', form.value)
   submitted.value = true
 
-  // В будущем: заменить на API POST /api/students/register
-  // axios.post('/api/students/register', form.value)
+  // Показываем сообщение 3 секунды, потом редиректим на логин
+  setTimeout(() => {
+    router.push('/login')
+  }, 3000)
 }
 </script>
+
 
 <style scoped>
 /* пока всё на tailwind */
