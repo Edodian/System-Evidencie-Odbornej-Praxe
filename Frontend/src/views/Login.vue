@@ -10,23 +10,10 @@
 >
   <span class="text-indigo-600 text-5xl font-bold">←</span>
 </div>
+
       <h1 class="text-3xl font-bold text-center text-indigo-600 mb-6">Login</h1>
 
-      <!-- Role Selector -->
-      <div class="mb-6">
-        <label class="block text-gray-700 font-medium mb-2">Select Role</label>
-        <select
-          v-model="role"
-          class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 px-3 py-2"
-        >
-          <option value="">Choose role</option>
-          <option value="student">Student</option>
-          <option value="company">Company</option>
-          <option value="guarantor">Guarantor</option>
-        </select>
-      </div>
-
-      <!-- Common fields -->
+      <!-- Email -->
       <div class="mb-4">
         <label class="block text-gray-700 mb-2">Email</label>
         <input
@@ -37,43 +24,13 @@
         />
       </div>
 
+      <!-- Password -->
       <div class="mb-6">
         <label class="block text-gray-700 mb-2">Password</label>
         <input
           type="password"
           v-model="password"
           placeholder="••••••••"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
-        />
-      </div>
-
-      <!-- Extra fields -->
-      <div v-if="role === 'student'" class="mb-6">
-        <label class="block text-gray-700 mb-2">Student ID</label>
-        <input
-          type="text"
-          v-model="studentId"
-          placeholder="e.g. ST12345"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
-        />
-      </div>
-
-      <div v-if="role === 'company'" class="mb-6">
-        <label class="block text-gray-700 mb-2">Company Code</label>
-        <input
-          type="text"
-          v-model="companyCode"
-          placeholder="e.g. CMP001"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
-        />
-      </div>
-
-      <div v-if="role === 'guarantor'" class="mb-6">
-        <label class="block text-gray-700 mb-2">Guarantor Key</label>
-        <input
-          type="text"
-          v-model="guarantorKey"
-          placeholder="e.g. GUAR-KEY"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
         />
       </div>
@@ -86,14 +43,14 @@
         Log In
       </button>
 
-      <!-- Message -->
+      <!-- Error -->
       <p v-if="error" class="text-red-500 text-sm mt-4 text-center">{{ error }}</p>
 
       <div class="text-center mt-6 text-gray-500 text-sm">
         Don’t have an account?
-        <router-link to="/register/student" class="text-indigo-600 hover:underline"
-          >Register</router-link
-        >
+        <router-link to="/register/student" class="text-indigo-600 hover:underline">
+          Register
+        </router-link>
       </div>
     </div>
   </div>
@@ -104,30 +61,28 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const role = ref('')
 const email = ref('')
 const password = ref('')
-const studentId = ref('')
-const companyCode = ref('')
-const guarantorKey = ref('')
 const error = ref('')
+
 const goBack = () => {
-  router.back() // вернёт на предыдущий маршрут
+  router.back()
 }
 
 const login = () => {
-  if (!role.value) {
-    error.value = 'Please select a role'
-    return
-  }
   if (!email.value || !password.value) {
     error.value = 'Please enter email and password'
     return
   }
 
-  // Simulate login success
-  if (role.value === 'student') router.push('/dashboard/student')
-  else if (role.value === 'company') router.push('/dashboard/company')
-  else if (role.value === 'guarantor') router.push('/dashboard/guarantor')
+  // Пример имитации логина (позже заменим на реальный API)
+  // Роль может возвращаться с бэкенда, например:
+  // { email, role: 'student' | 'company' | 'guarantor' }
+
+  // Временно - фейковая логика по email
+  if (email.value.includes('student')) router.push('/dashboard/student')
+  else if (email.value.includes('company')) router.push('/dashboard/company')
+  else if (email.value.includes('guarantor')) router.push('/dashboard/guarantor')
+  else router.push('/dashboard/student') // fallback
 }
 </script>
