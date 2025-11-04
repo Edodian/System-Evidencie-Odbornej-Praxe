@@ -1,7 +1,17 @@
 <template>
-  <div class="p-8">
-    <h1 class="text-3xl font-bold text-indigo-700 mb-6">Company Dashboard</h1>
-
+  <div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white py-4 shadow-md">
+      <div class="max-w-6xl mx-auto flex justify-between items-center px-6">
+        <h1 class="text-2xl font-semibold">Company Dashboard</h1>
+        <button
+          @click="logout"
+          class="bg-white text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-indigo-100"
+        >
+          Logout
+        </button>
+      </div>
+    </header>
     <table class="min-w-full bg-white shadow rounded">
       <thead>
         <tr class="bg-indigo-50">
@@ -52,6 +62,13 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
+const logout = () => {
+  router.push('/login')
+}
+
 import { ref } from 'vue'
 
 const applications = ref([

@@ -1,6 +1,17 @@
 <template>
-  <div class="p-8">
-    <h1 class="text-3xl font-bold text-indigo-700 mb-6">Guarantor Dashboard</h1>
+  <div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white py-4 shadow-md">
+      <div class="max-w-6xl mx-auto flex justify-between items-center px-6">
+        <h1 class="text-2xl font-semibold">Guarantor Dashboard</h1>
+        <button
+          @click="logout"
+          class="bg-white text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-indigo-100"
+        >
+          Logout
+        </button>
+      </div>
+    </header>
   
     <!-- 🔹 Фильтры -->
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -107,6 +118,13 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
+const logout = () => {
+  router.push('/login')
+}
+
 import { ref, computed } from 'vue'
 
 // 📌 Список стажировок (пока локально)
