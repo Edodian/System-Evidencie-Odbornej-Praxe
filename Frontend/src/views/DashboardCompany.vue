@@ -13,14 +13,37 @@
         </tr>
       </thead>
       <tbody>
-        <tr class="border-t">
-          <td class="py-2 px-4">John Doe</td>
-          <td class="py-2 px-4">Informatics</td>
-          <td class="py-2 px-4">Mar–Jun 2025</td>
-          <td class="py-2 px-4 text-yellow-600 font-medium">Pending</td>
+        <tr
+          v-for="(app, index) in applications"
+          :key="index"
+          class="border-t hover:bg-gray-50 transition"
+        >
+          <td class="py-2 px-4">{{ app.student }}</td>
+          <td class="py-2 px-4">{{ app.program }}</td>
+          <td class="py-2 px-4">{{ app.period }}</td>
+          <td
+            class="py-2 px-4 font-medium"
+            :class="{
+              'text-yellow-600': app.status === 'Pending',
+              'text-green-600': app.status === 'Accepted',
+              'text-red-600': app.status === 'Rejected'
+            }"
+          >
+            {{ app.status }}
+          </td>
           <td class="py-2 px-4">
-            <button class="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700">Accept</button>
-            <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 ml-2">Reject</button>
+            <button
+              class="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700"
+              @click="updateStatus(index, 'Accepted')"
+            >
+              Accept
+            </button>
+            <button
+              class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 ml-2"
+              @click="updateStatus(index, 'Rejected')"
+            >
+              Reject
+            </button>
           </td>
         </tr>
       </tbody>
@@ -29,5 +52,14 @@
 </template>
 
 <script setup>
-// Позже добавим реальное API
+import { ref } from 'vue'
+
+const applications = ref([
+  { student: 'John Doe', program: 'Informatics', period: 'Mar–Jun 2025', status: 'Pending' },
+  { student: 'Jane Smith', program: 'Computer Science', period: 'Apr–Jul 2025', status: 'Pending' }
+])
+
+const updateStatus = (index, newStatus) => {
+  applications.value[index].status = newStatus
+}
 </script>
