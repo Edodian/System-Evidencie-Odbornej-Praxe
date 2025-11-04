@@ -135,13 +135,13 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 
 const router = useRouter()
 
 const goBack = () => {
-  router.back() // вернёт на предыдущий маршрут
+  router.back()
 }
-import { ref } from 'vue'
 
 const form = ref({
   companyName: '',
@@ -158,8 +158,14 @@ const submitted = ref(false)
 const handleSubmit = () => {
   console.log('Submitted company registration:', form.value)
   submitted.value = true
+
+  // Показываем сообщение об успешной регистрации и редиректим на логин через 3 секунды
+  setTimeout(() => {
+    router.push('/login')
+  }, 3000)
 }
 </script>
+
 
 <style scoped>
 /* всё на tailwind */
