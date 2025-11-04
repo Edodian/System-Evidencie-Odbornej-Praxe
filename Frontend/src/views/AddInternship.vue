@@ -42,6 +42,20 @@
           />
         </div>
 
+        <!-- Semester -->
+        <div>
+          <label class="block text-gray-700 mb-2">Semester</label>
+          <select
+            v-model="form.semester"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+          >
+            <option value="">Select semester</option>
+            <option value="Spring 2025">Spring 2025</option>
+            <option value="Summer 2025">Summer 2025</option>
+            <option value="Fall 2025">Fall 2025</option>
+          </select>
+        </div>
+
         <!-- Start Date -->
         <div>
           <label class="block text-gray-700 mb-2">Start Date</label>
@@ -89,7 +103,9 @@
         v-if="submitted"
         class="mt-6 text-center text-green-600 font-medium bg-green-50 py-3 rounded-lg"
       >
-        Internship successfully submitted! Redirecting to dashboard...
+        Internship successfully submitted! Preparing PDF...
+        <br />
+        Redirecting to dashboard...
       </div>
     </main>
   </div>
@@ -104,6 +120,7 @@ const router = useRouter()
 const form = ref({
   company: "",
   position: "",
+  semester: "",
   startDate: "",
   endDate: "",
   description: ""
@@ -111,11 +128,24 @@ const form = ref({
 
 const submitted = ref(false)
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   console.log("Internship submitted:", form.value)
+
+  // имитация POST-запроса
+  await new Promise(resolve => setTimeout(resolve, 1000))
+  console.log("POST request sent successfully!")
+
+  // имитация скачивания PDF
+  const pdfBlob = new Blob(["Mock PDF content"], { type: "application/pdf" })
+  const pdfUrl = URL.createObjectURL(pdfBlob)
+  const link = document.createElement("a")
+  link.href = pdfUrl
+  link.download = "internship_confirmation.pdf"
+  link.click()
+
   submitted.value = true
 
-  // Через 2 секунды возвращаемся на дашборд студента
+  // через 2 секунды возвращаемся на дашборд
   setTimeout(() => {
     router.push("/dashboard/student")
   }, 2000)
