@@ -66,30 +66,46 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from '../api.js'
 
 const router = useRouter()
 const email = ref('')
 const password = ref('')
 const error = ref('')
+const loading = ref(false)
 
 const goBack = () => {
   router.back()
 }
 
-const login = () => {
+const login = async () => {
   if (!email.value || !password.value) {
     error.value = 'Please enter email and password'
     return
   }
 
-  // Пример имитации логина (позже заменим на реальный API)
-  // Роль может возвращаться с бэкенда, например:
-  // { email, role: 'student' | 'company' | 'guarantor' }
+  loading.value = true
+  error.value = ''
 
-  // Временно - фейковая логика по email
-  if (email.value.includes('student')) router.push('/dashboard/student')
-  else if (email.value.includes('company')) router.push('/dashboard/company')
-  else if (email.value.includes('guarantor')) router.push('/dashboard/guarantor')
-  else router.push('/dashboard/student') // fallback
+  try {
+    // send POST to backend and receive User object as response
+    const res = await axios.post('http://localhost:8081/login', {
+      email: email.value,
+      password: password.value
+    })
+
+    const user = res.data
+    console.log('Logged in user:', user)
+
+    // navigate based on returned user.role if present, otherwise fallback
+    if (user && user.role === 'company') router.push('/dashboard/company')
+    else if (user && user.role === 'guarantor') router.push('/dashboard/guarantor')
+    else router.push('/dashboard/student')
+  } catch (e) {
+    console.error('Login error:', e)
+    error.value = e.response?.data?.message || 'Login failed. Please try again.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>

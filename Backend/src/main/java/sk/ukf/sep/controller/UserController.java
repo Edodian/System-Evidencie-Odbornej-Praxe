@@ -29,4 +29,15 @@ public class UserController {
         else return "Email provided is not UKF student mail";
     }
 
+    @PostMapping("/login")
+    public String loginStudent(
+            @RequestBody User credentials
+    ) {
+        User user = repository.findByEmail(credentials.getEmail());
+        if (user != null && user.getPwd().equals(credentials.getPwd())) {
+            return "Login successful: " + user.toString();
+        }
+        return "Invalid credentials";
+    }
+
 }

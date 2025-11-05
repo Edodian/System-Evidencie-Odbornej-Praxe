@@ -15,13 +15,25 @@
       <form @submit.prevent="handleSubmit" class="space-y-5">
         <!-- Name -->
         <div>
-          <label class="block text-gray-700 font-medium mb-1">Full Name</label>
+          <label class="block text-gray-700 font-medium mb-1">Name</label>
           <input
             v-model="form.name"
             type="text"
-            placeholder="John Doe"
+            placeholder="Jozef"
             class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             required
+          />
+        </div>
+
+        <!-- Surame -->
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Surame</label>
+          <input
+              v-model="form.surname"
+              type="text"
+              placeholder="Mrkvicka"
+              class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              required
           />
         </div>
 
@@ -105,6 +117,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
+import axios from '../api.js'
 
 const router = useRouter()
 
@@ -113,23 +126,33 @@ const goBack = () => {
 }
 
 const form = ref({
-  name: '',
   studentEmail: '',
+  name: '',
+  surname: '',
   altEmail: '',
   phone: '',
   program: '',
+  role: 'student'
 })
 
 const submitted = ref(false)
 
-const handleSubmit = () => {
-  console.log('Submitted form:', form.value)
-  submitted.value = true
-
-  // Показываем сообщение 3 секунды, потом редиректим на логин
-  setTimeout(() => {
-    router.push('/login')
-  }, 3000)
+const handleSubmit = async () => {
+  try {
+    console.log('Submitting form:', form.value)
+    // send POST to localhost:8081/student
+    await axios.post('http://localhost:8081/student', { ...form.value })
+    submitted.value = true
+    error.value = ''
+    // show message 3 seconds then redirect to login
+    setTimeout(() => {
+      router.push('/login')
+    }, 3000)
+  } catch (e) {
+    console.error('Registration error:', e)
+    error.value = 'Registration failed. Please try again.'
+    submitted.value = false
+  }
 }
 </script>
 

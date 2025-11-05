@@ -1,31 +1,56 @@
-package sk.ukf.sep;
+package sk.ukf.sep.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-@EnableWebSecurity
 public class SecurityConfig {
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        var user = User.withUsername("andrei")
+                .password("password")
+                .roles("USER")
+                .build();
+        return new InMemoryUserDetailsManager(user);
+    }
+
+    // 2️⃣ Временно отключаем шифрование пароля (для простоты)
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return NoOpPasswordEncoder.getInstance();
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // отключаем CSRF, если фронт на другом домене
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/register").permitAll() // публичные пути
-                        .anyRequest().authenticated() // остальные требуют логина
-                )
-                .formLogin(Customizer.withDefaults()) // стандартный login form Spring Security
-                .logout(Customizer.withDefaults());  // стандартный logout
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .cors(Customizer.withDefaults());
 
         return http.build();
     }
+
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .csrf(csrf -> csrf.disable()) // отключаем CSRF для REST API
+//                .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers("/login", "/student").permitAll() // логин и регистрация разрешены без авторизации
+//                        .anyRequest().authenticated() // остальное требует логина
+//                )
+//                .formLogin(Customizer.withDefaults()) // стандартная обработка логина
+//                .logout(Customizer.withDefaults()) // стандартный logout
+//                .cors(Customizer.withDefaults()); // включаем CORS
+//
+//        return http.build();
+//    }
 }
