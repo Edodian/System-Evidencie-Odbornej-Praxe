@@ -19,14 +19,10 @@ import sk.ukf.sep.entity.User;
 public class UserController {
 
     final private UserRepository repository;
-    final private PasswordEncoder passwordEncoder;
-    final private AuthenticationManager authenticationManager;
 
     @Autowired
-    public UserController(UserRepository repository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
+    public UserController(UserRepository repository) {
         this.repository = repository;
-        this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
     }
 
     @PostMapping("/student")
@@ -35,8 +31,6 @@ public class UserController {
     ) {
         System.out.println(student);
         if (student.getEmail().endsWith("@student.ukf.sk")){
-            // Hash the password before saving
-            student.setPwd(passwordEncoder.encode(student.getPwd()));
             User savedStudent = repository.save(student);
             System.out.println(savedStudent);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedStudent);
@@ -54,12 +48,6 @@ public class UserController {
             // Create authentication token with credentials
             UsernamePasswordAuthenticationToken authenticationToken = 
                     new UsernamePasswordAuthenticationToken(credentials.getEmail(), credentials.getPwd());
-            
-            // Authenticate using Spring Security's AuthenticationManager
-            Authentication authentication = authenticationManager.authenticate(authenticationToken);
-            
-            // Set the authentication in the security context
-            SecurityContextHolder.getContext().setAuthentication(authentication);
             
             // Retrieve the authenticated user from database
             User user = repository.findByEmail(credentials.getEmail());
