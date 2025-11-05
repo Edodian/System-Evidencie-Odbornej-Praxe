@@ -13,42 +13,47 @@
 
       <h1 class="text-3xl font-bold text-center text-indigo-600 mb-6">Login</h1>
 
-      <!-- Email -->
-      <div class="mb-4">
-        <label class="block text-gray-700 mb-2">Email</label>
-        <input
-          type="email"
-          v-model="email"
-          placeholder="you@example.com"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
-        />
-      </div>
+      <form @submit.prevent="login" class="space-y-5">
+        <!-- Email -->
+        <div>
+          <label class="block text-gray-700 mb-2">Email</label>
+          <input
+            type="email"
+            v-model="email"
+            placeholder="you@example.com"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+            required
+          />
+        </div>
 
-      <!-- Password -->
-      <div class="mb-6">
-        <label class="block text-gray-700 mb-2">Password</label>
-        <input
-          type="password"
-          v-model="password"
-          placeholder="••••••••"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
-        />
-      </div>
+        <!-- Password -->
+        <div>
+          <label class="block text-gray-700 mb-2">Password</label>
+          <input
+            type="password"
+            v-model="password"
+            placeholder="••••••••"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+            required
+          />
+        </div>
 
-      <!-- Submit -->
-      <button
-        @click="login"
-        class="w-full bg-indigo-600 text-white font-medium py-2 rounded-lg hover:bg-indigo-700 transition-all"
-      >
-        Log In
-      </button>
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="w-full bg-indigo-600 text-white font-medium py-2 rounded-lg hover:bg-indigo-700 transition-all"
+          :disabled="loading"
+        >
+          {{ loading ? 'Logging in...' : 'Log In' }}
+        </button>
+      </form>
+
       <!-- Под кнопкой Login -->
-<p class="text-center mt-4">
-  <router-link to="/forgot-password" class="text-indigo-600 hover:underline text-sm">
-    Forgot your password?
-  </router-link>
-</p>
-
+      <p class="text-center mt-4">
+        <router-link to="/forgot-password" class="text-indigo-600 hover:underline text-sm">
+          Forgot your password?
+        </router-link>
+      </p>
 
       <!-- Error -->
       <p v-if="error" class="text-red-500 text-sm mt-4 text-center">{{ error }}</p>
@@ -89,9 +94,9 @@ const login = async () => {
 
   try {
     // send POST to backend and receive User object as response
-    const res = await axios.post('http://localhost:8081/login', {
+    const res = await axios.post('/login', {
       email: email.value,
-      password: password.value
+      pwd: password.value
     })
 
     const user = res.data

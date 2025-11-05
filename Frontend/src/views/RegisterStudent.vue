@@ -41,9 +41,21 @@
         <div>
           <label class="block text-gray-700 font-medium mb-1">Student Email</label>
           <input
-            v-model="form.studentEmail"
+            v-model="form.email"
             type="email"
             placeholder="example@student.university.com"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            required
+          />
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Password</label>
+          <input
+            v-model="form.pwd"
+            type="password"
+            placeholder="••••••••"
             class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             required
           />
@@ -75,7 +87,7 @@
         <div>
           <label class="block text-gray-700 font-medium mb-1">Study Program</label>
           <select
-            v-model="form.program"
+            v-model="form.field"
             class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             required
           >
@@ -104,6 +116,14 @@
         Registration successful! Check your email for confirmation.
       </p>
 
+      <!-- Error Message -->
+      <p
+        v-if="error"
+        class="text-red-600 text-center mt-4 font-medium"
+      >
+        {{ error }}
+      </p>
+
       <router-link
         to="/login"
         class="block text-center text-indigo-600 hover:underline mt-6"
@@ -126,22 +146,24 @@ const goBack = () => {
 }
 
 const form = ref({
-  studentEmail: '',
+  email: '',
+  pwd: '',
   name: '',
   surname: '',
   altEmail: '',
   phone: '',
-  program: '',
+  field: '',
   role: 'student'
 })
 
 const submitted = ref(false)
+const error = ref('')
 
 const handleSubmit = async () => {
   try {
     console.log('Submitting form:', form.value)
-    // send POST to localhost:8081/student
-    await axios.post('http://localhost:8081/student', { ...form.value })
+    // send POST to backend using baseURL from api.js
+    await axios.post('/student', { ...form.value })
     submitted.value = true
     error.value = ''
     // show message 3 seconds then redirect to login
