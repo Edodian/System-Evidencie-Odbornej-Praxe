@@ -1,10 +1,8 @@
 package sk.ukf.sep.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -12,7 +10,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter @ToString
+@Table(name = "user")
+@Getter @Setter @ToString
 public class User {
     @Id
     @GeneratedValue
@@ -20,6 +19,7 @@ public class User {
     private Integer id;
     @Column(unique = true)
     private String email;
+    // @GeneratedValue(generator = "password_generator")
     @Column(nullable = false)
     private String pwd;
     @Column(nullable = false)
@@ -27,15 +27,17 @@ public class User {
     @Column(nullable = false)
     private String surname;
     @Column(nullable = false)
-//    private String role;
+    private String role;
 //    @Column(name="titul_pref")
 //    private String titulPref;
 //    @Column(name="titul_suf")
 //    private String titulSuf;
-//    @Column(name="alt_email")
-//    private String altEmail;
-//    @Column
-//    private String field; // TODO: Change to Field class when will ready
+    @Column(name="alt_email")
+    private String altEmail;
+    @Column(name="phone")
+    private String phone;
+    @Column
+    private String field; // TODO: Change to Field class when will ready
 //    @Column
 //    private String address; // TODO: Change to Address class when will ready
 //    @Column
