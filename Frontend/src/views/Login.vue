@@ -73,8 +73,9 @@ const password = ref('')
 const error = ref('')
 
 const goBack = () => {
-  router.back()
+  router.push('/')
 }
+
 
 const login = () => {
   if (!email.value || !password.value) {
