@@ -2,16 +2,27 @@
   <div class="min-h-screen bg-gray-50">
     <!-- Header -->
     <header class="bg-indigo-600 text-white py-4 shadow-md">
-      <div class="max-w-6xl mx-auto flex justify-between items-center px-6">
-        <h1 class="text-2xl font-semibold">Student Dashboard</h1>
-        <button
-          @click="logout"
-          class="bg-white text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-indigo-100"
-        >
-          Logout
-        </button>
-      </div>
-    </header>
+  <div class="max-w-6xl mx-auto flex justify-between items-center px-6">
+    <h1 class="text-2xl font-semibold">Student Dashboard</h1>
+
+    <!-- Кнопки справа -->
+    <div class="flex items-center space-x-2">
+      <button
+        @click="goToChangePassword"
+        class="bg-white text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-indigo-100"
+      >
+        Change Password
+      </button>
+
+      <button
+        @click="logout"
+        class="bg-white text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-indigo-100"
+      >
+        Logout
+      </button>
+    </div>
+  </div>
+</header>
 
     <!-- Main Content -->
     <main class="max-w-6xl mx-auto py-10 px-6">
@@ -128,4 +139,10 @@ const logout = () => {
 const goToAddInternship = () => {
   router.push('/internship/add')
 }
+
+const goToChangePassword = () => {
+  router.push({ path: "/change-password", query: { from: "student" } })
+}
+
+
 </script>

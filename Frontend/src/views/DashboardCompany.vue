@@ -4,15 +4,26 @@
     <header class="bg-indigo-600 text-white py-4 shadow-md">
       <div class="max-w-6xl mx-auto flex justify-between items-center px-6">
         <h1 class="text-2xl font-semibold">Company Dashboard</h1>
-        <button
-          @click="logout"
-          class="bg-white text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-indigo-100"
-        >
-          Logout
-        </button>
+
+        <div class="flex items-center space-x-2">
+            <button
+        @click="goToChangePassword"
+        class="bg-white text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-indigo-100"
+      >
+        Change Password
+      </button>
+
+      <button
+        @click="logout"
+        class="bg-white text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-indigo-100"
+      >
+        Logout
+      </button>
+        </div>
       </div>
     </header>
-    <table class="min-w-full bg-white shadow rounded">
+
+    <table class="min-w-full bg-white shadow rounded mt-6">
       <thead>
         <tr class="bg-indigo-50">
           <th class="py-2 px-4 text-left">Student</th>
@@ -62,14 +73,19 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+
 const router = useRouter()
 
 const logout = () => {
   router.push('/login')
 }
 
-import { ref } from 'vue'
+const goToChangePassword = () => {
+  router.push({ path: "/change-password", query: { from: "company" } })
+}
+
 
 const applications = ref([
   { student: 'John Doe', program: 'Informatics', period: 'Mar–Jun 2025', status: 'Pending' },

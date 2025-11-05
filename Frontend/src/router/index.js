@@ -17,6 +17,7 @@ const routes = [
   { path: '/register/company', name: 'RegisterCompany', component: RegisterCompany },
   { path: '/internship/add', name: 'AddInternship', component: () => import('@/views/AddInternship.vue')},
   { path: '/forgot-password', name: 'ForgotPassword', component: () => import('@/views/ForgotPassword.vue')},
+  { path: '/change-password', name: 'ChangePassword', component: () => import('@/views/ChangePassword.vue')},
 
   // Dashboards by role
   { path: '/dashboard/student', name: 'DashboardStudent', component: DashboardStudent },
