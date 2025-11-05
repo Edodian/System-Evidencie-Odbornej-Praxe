@@ -1,4 +1,4 @@
-package sk.ukf.sep;
+package sk.ukf.sep.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

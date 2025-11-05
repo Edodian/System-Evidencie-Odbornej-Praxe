@@ -1,9 +1,11 @@
-package sk.ukf.sep;
+package sk.ukf.sep.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import sk.ukf.sep.repository.UserRepository;
+import sk.ukf.sep.entity.User;
 
 @RestController
 public class UserController {
