@@ -79,9 +79,7 @@ const password = ref('')
 const error = ref('')
 const loading = ref(false)
 
-const goBack = () => {
-  router.push('/')
-}
+const goBack = () => router.push('/')
 
 const login = async () => {
   if (!email.value || !password.value) {
@@ -93,41 +91,40 @@ const login = async () => {
   error.value = ''
 
   try {
-    // 🟡 === ВРЕМЕННАЯ МОК-АВТОРИЗАЦИЯ (без бэка) ===
-    // Имитация “ответа” от сервера
-    const mockUser = {
-      email: email.value,
-      role: email.value.includes('company') 
-        ? 'company' 
-        : email.value.includes('guarantor') 
-        ? 'guarantor' 
-        : 'student'
-    }
+    const res = await axios.post(
+      '/api/student/login',
+      { email: email.value, password: password.value },
+      { withCredentials: true }
+    )
 
-    // Сохраняем “токен” и “роль” в localStorage
-    localStorage.setItem('token', 'mockToken123')
-    localStorage.setItem('role', mockUser.role)
+    // === Успешный логин ===
+    const data = res.data
+    localStorage.setItem('email', email.value)
+    localStorage.setItem('mustChangePwd', 'false')
+    localStorage.setItem('role', 'student')
+    localStorage.setItem('token', 'session') // пока без JWT
 
-    console.log('✅ Logged in as:', mockUser.role)
-
-    // Перенаправляем по роли
-    if (mockUser.role === 'company') router.push('/dashboard/company')
-    else if (mockUser.role === 'guarantor') router.push('/dashboard/guarantor')
-    else router.push('/dashboard/student')
-
-    // 🟢 === КОГДА ПОДКЛЮЧИШЬ БЭК ===
-    // Раскомментируешь этот код и уберёшь мок выше 👇
-    /*
-    const res = await axios.post('/login', {
-      email: email.value,
-      pwd: password.value
-    })
-    const user = res.data
-    localStorage.setItem('token', user.token)
-    localStorage.setItem('role', user.role)
-    */
+    router.push('/dashboard/student')
   } catch (e) {
     console.error('Login error:', e)
+
+    const status = e.response?.status
+    const backendStatus = e.response?.data?.status
+
+    if (status === 403 && backendStatus === 'PASSWORD_CHANGE_REQUIRED') {
+      // Обязательная смена пароля
+      localStorage.setItem('email', email.value)
+      localStorage.setItem('mustChangePwd', 'true')
+      error.value = 'You must change your temporary password first.'
+      router.push('/change-password')
+      return
+    }
+
+    if (status === 401) {
+      error.value = 'Invalid email or password.'
+      return
+    }
+
     error.value = e.response?.data?.message || 'Login failed. Please try again.'
   } finally {
     loading.value = false

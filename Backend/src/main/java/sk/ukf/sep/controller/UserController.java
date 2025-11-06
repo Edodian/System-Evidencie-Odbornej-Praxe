@@ -13,6 +13,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/student")
+//@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class UserController {
 
     private final UserRepository repository;
@@ -110,7 +111,7 @@ public class UserController {
         ));
     }
 
-    @GetMapping("/student/profile")
+    @GetMapping("/profile")
     public ResponseEntity<Map<String, Object>> getProfile(HttpSession session) {
         Integer userId = (Integer) session.getAttribute("userId");
 

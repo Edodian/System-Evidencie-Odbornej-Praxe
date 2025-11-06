@@ -5,7 +5,6 @@
       <div class="max-w-6xl mx-auto flex justify-between items-center px-6">
         <h1 class="text-2xl font-semibold">Student Dashboard</h1>
 
-        <!-- Кнопки справа -->
         <div class="flex items-center space-x-2">
           <button
             @click="goToChangePassword"
@@ -28,10 +27,9 @@
     <main class="max-w-6xl mx-auto py-10 px-6">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold text-indigo-700">
-          Welcome, {{ studentName }}
+          Welcome<span v-if="studentName">, {{ studentName }}</span><span v-else>...</span>
         </h2>
 
-        <!-- 🔹 Add Internship Button -->
         <button
           @click="goToAddInternship"
           class="bg-indigo-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-all"
@@ -40,6 +38,7 @@
         </button>
       </div>
 
+      <!-- Internships Placeholder (unchanged) -->
       <div class="bg-white shadow-md rounded-2xl p-6">
         <h3 class="text-xl font-semibold mb-4 text-gray-800">Your Internships</h3>
 
@@ -84,7 +83,6 @@
                   View Details
                 </button>
 
-                <!-- 🔹 Upload Buttons -->
                 <button
                   @click="uploadFile('agreement', internship.id)"
                   class="bg-indigo-100 text-indigo-700 text-sm px-3 py-1 rounded-lg hover:bg-indigo-200 transition-all w-full"
@@ -108,13 +106,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const router = useRouter()
-
-const studentName = ref('John Doe')
-
+const studentName = ref('')
 const internships = ref([
   {
     id: 1,
@@ -142,25 +139,38 @@ const internships = ref([
   }
 ])
 
-const viewDetails = (id) => {
-  router.push(`/internship/${id}`)
+// === Fetch student info from backend ===
+const fetchProfile = async () => {
+  try {
+    const res = await axios.get('/api/student/profile', { withCredentials: true })
+    const data = res.data
+    studentName.value = `${data.name} ${data.surname}`
+    localStorage.setItem('email', data.email)
+    localStorage.setItem('role', data.role)
+  } catch (err) {
+    console.error('Profile fetch error:', err)
+    if (err.response?.status === 401 || err.response?.status === 403) {
+      router.push('/login')
+    }
+  }
 }
 
-const logout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('role')
+onMounted(fetchProfile)
+
+const viewDetails = (id) => router.push(`/internship/${id}`)
+
+const logout = async () => {
+  try {
+    await axios.post('/api/student/logout', {}, { withCredentials: true })
+  } catch (_) {}
+  localStorage.clear()
   router.push('/login')
 }
 
-const goToAddInternship = () => {
-  router.push('/internship/add')
-}
+const goToAddInternship = () => router.push('/internship/add')
+const goToChangePassword = () => router.push({ path: '/change-password', query: { from: 'student' } })
 
-const goToChangePassword = () => {
-  router.push({ path: '/change-password', query: { from: 'student' } })
-}
-
-// 🔹 Mock upload logic (заменить на backend позже)
+// === Keep internship uploads unchanged ===
 const uploadFile = (type, internshipId) => {
   const input = document.createElement('input')
   input.type = 'file'
@@ -169,7 +179,6 @@ const uploadFile = (type, internshipId) => {
     const file = e.target.files[0]
     if (!file) return
     alert(`${type === 'agreement' ? 'Agreement' : 'Report'} uploaded for internship #${internshipId}: ${file.name}`)
-    // 🚀 TODO: заменить на axios.post(`/api/upload/${internshipId}`, file)
   }
   input.click()
 }
