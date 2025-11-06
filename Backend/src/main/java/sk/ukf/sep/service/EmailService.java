@@ -24,11 +24,12 @@ public class EmailService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("Temporary password for SEP");
-        message.setText("Hello," + fullName + "\n" +
+        message.setText("Dear," + fullName + "\n" +
                 "Thank you for registering in SEP. Your temporary password is: " + password + " . Please, use it for your first login.\n" +
-                "After that you will be kindly asked to change it to your own due of security purposes.\n" +
-                "If you did't registered in SEP, just ignore this email\n" +
+                "At your first login, it is required to change it to your own due of security purposes.\n" +
+                "If you didn't register in SEP, just ignore this email\n" +
                 "Best regards,\nSEP");
+        mailSender.send(message);
     }
 }
 

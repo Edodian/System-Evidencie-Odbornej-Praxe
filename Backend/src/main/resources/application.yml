@@ -24,4 +24,5 @@ spring:
           auth: false
           starttls:
             enable: false
+    default-encoding: UTF-8
 server.port: 8081
