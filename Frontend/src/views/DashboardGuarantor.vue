@@ -165,8 +165,36 @@ const updateStatus = (id, newStatus) => {
   if (internship) internship.status = newStatus
 }
 
-// 📌 Экспорт (фейковый)
+// 📌 Экспорт CSV
 const exportReport = () => {
-  alert('Report exported successfully (mock)')
+  if (!filteredInternships.value.length) {
+    alert('No data to export!')
+    return
+  }
+
+  // Создаём заголовки и строки CSV
+  const headers = ['Student', 'Company', 'Year', 'Status']
+  const rows = filteredInternships.value.map(i => [i.student, i.company, i.year, i.status])
+
+  const csvContent = [
+    headers.join(','), // заголовки
+    ...rows.map(r => r.join(',')) // строки
+  ].join('\n')
+
+  // Создаём Blob и ссылку для скачивания
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+
+  const filename = `internships_report_${new Date().getFullYear()}.csv`
+  link.setAttribute('href', url)
+  link.setAttribute('download', filename)
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+
+  console.log('✅ CSV exported:', filename)
 }
+
 </script>
