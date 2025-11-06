@@ -3,90 +3,66 @@
     <div
       class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 border border-gray-100 transition-all duration-300 hover:shadow-xl"
     >
+      <!-- Back Arrow Box -->
+      <div 
+        class="absolute top-6 left-6 w-16 h-16 flex items-center justify-center bg-indigo-50 rounded-lg cursor-pointer hover:bg-indigo-100"
+        @click="goBack"
+      >
+        <span class="text-indigo-600 text-5xl font-bold">←</span>
+      </div>
+
       <h1 class="text-3xl font-bold text-center text-indigo-600 mb-6">Login</h1>
 
-      <!-- Role Selector -->
-      <div class="mb-6">
-        <label class="block text-gray-700 font-medium mb-2">Select Role</label>
-        <select
-          v-model="role"
-          class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 px-3 py-2"
+      <form @submit.prevent="login" class="space-y-5">
+        <!-- Email -->
+        <div>
+          <label class="block text-gray-700 mb-2">Email</label>
+          <input
+            type="email"
+            v-model="email"
+            placeholder="you@example.com"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+            required
+          />
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="block text-gray-700 mb-2">Password</label>
+          <input
+            type="password"
+            v-model="password"
+            placeholder="••••••••"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+            required
+          />
+        </div>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="w-full bg-indigo-600 text-white font-medium py-2 rounded-lg hover:bg-indigo-700 transition-all"
+          :disabled="loading"
         >
-          <option value="">Choose role</option>
-          <option value="student">Student</option>
-          <option value="company">Company</option>
-          <option value="guarantor">Guarantor</option>
-        </select>
-      </div>
+          {{ loading ? 'Logging in...' : 'Log In' }}
+        </button>
+      </form>
 
-      <!-- Common fields -->
-      <div class="mb-4">
-        <label class="block text-gray-700 mb-2">Email</label>
-        <input
-          type="email"
-          v-model="email"
-          placeholder="you@example.com"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
-        />
-      </div>
+      <!-- Forgot password -->
+      <p class="text-center mt-4">
+        <router-link to="/forgot-password" class="text-indigo-600 hover:underline text-sm">
+          Forgot your password?
+        </router-link>
+      </p>
 
-      <div class="mb-6">
-        <label class="block text-gray-700 mb-2">Password</label>
-        <input
-          type="password"
-          v-model="password"
-          placeholder="••••••••"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
-        />
-      </div>
-
-      <!-- Extra fields -->
-      <div v-if="role === 'student'" class="mb-6">
-        <label class="block text-gray-700 mb-2">Student ID</label>
-        <input
-          type="text"
-          v-model="studentId"
-          placeholder="e.g. ST12345"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
-        />
-      </div>
-
-      <div v-if="role === 'company'" class="mb-6">
-        <label class="block text-gray-700 mb-2">Company Code</label>
-        <input
-          type="text"
-          v-model="companyCode"
-          placeholder="e.g. CMP001"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
-        />
-      </div>
-
-      <div v-if="role === 'guarantor'" class="mb-6">
-        <label class="block text-gray-700 mb-2">Guarantor Key</label>
-        <input
-          type="text"
-          v-model="guarantorKey"
-          placeholder="e.g. GUAR-KEY"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
-        />
-      </div>
-
-      <!-- Submit -->
-      <button
-        @click="login"
-        class="w-full bg-indigo-600 text-white font-medium py-2 rounded-lg hover:bg-indigo-700 transition-all"
-      >
-        Log In
-      </button>
-
-      <!-- Message -->
+      <!-- Error -->
       <p v-if="error" class="text-red-500 text-sm mt-4 text-center">{{ error }}</p>
 
       <div class="text-center mt-6 text-gray-500 text-sm">
         Don’t have an account?
-        <router-link to="/register/student" class="text-indigo-600 hover:underline"
-          >Register</router-link
-        >
+        <router-link to="/register/student" class="text-indigo-600 hover:underline">
+          Register
+        </router-link>
       </div>
     </div>
   </div>
@@ -95,29 +71,66 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from '../api.js'
 
 const router = useRouter()
-const role = ref('')
 const email = ref('')
 const password = ref('')
-const studentId = ref('')
-const companyCode = ref('')
-const guarantorKey = ref('')
 const error = ref('')
+const loading = ref(false)
 
-const login = () => {
-  if (!role.value) {
-    error.value = 'Please select a role'
-    return
-  }
+const goBack = () => {
+  router.push('/')
+}
+
+const login = async () => {
   if (!email.value || !password.value) {
     error.value = 'Please enter email and password'
     return
   }
 
-  // Simulate login success
-  if (role.value === 'student') router.push('/dashboard/student')
-  else if (role.value === 'company') router.push('/dashboard/company')
-  else if (role.value === 'guarantor') router.push('/dashboard/guarantor')
+  loading.value = true
+  error.value = ''
+
+  try {
+    // 🟡 === ВРЕМЕННАЯ МОК-АВТОРИЗАЦИЯ (без бэка) ===
+    // Имитация “ответа” от сервера
+    const mockUser = {
+      email: email.value,
+      role: email.value.includes('company') 
+        ? 'company' 
+        : email.value.includes('guarantor') 
+        ? 'guarantor' 
+        : 'student'
+    }
+
+    // Сохраняем “токен” и “роль” в localStorage
+    localStorage.setItem('token', 'mockToken123')
+    localStorage.setItem('role', mockUser.role)
+
+    console.log('✅ Logged in as:', mockUser.role)
+
+    // Перенаправляем по роли
+    if (mockUser.role === 'company') router.push('/dashboard/company')
+    else if (mockUser.role === 'guarantor') router.push('/dashboard/guarantor')
+    else router.push('/dashboard/student')
+
+    // 🟢 === КОГДА ПОДКЛЮЧИШЬ БЭК ===
+    // Раскомментируешь этот код и уберёшь мок выше 👇
+    /*
+    const res = await axios.post('/login', {
+      email: email.value,
+      pwd: password.value
+    })
+    const user = res.data
+    localStorage.setItem('token', user.token)
+    localStorage.setItem('role', user.role)
+    */
+  } catch (e) {
+    console.error('Login error:', e)
+    error.value = e.response?.data?.message || 'Login failed. Please try again.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>

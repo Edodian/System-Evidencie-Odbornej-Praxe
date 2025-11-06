@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:mariadb://mariadb:3306/sep_dev
+    username: appuser
+    password: apppassword
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create

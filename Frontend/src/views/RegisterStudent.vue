@@ -1,6 +1,14 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-6">
     <div class="max-w-md w-full bg-white rounded-2xl shadow-md p-8">
+      <!-- Back Arrow Box -->
+      <div 
+        class="absolute top-6 left-6 w-16 h-16 flex items-center justify-center bg-indigo-50 rounded-lg cursor-pointer hover:bg-indigo-100"
+        @click="goBack"
+      >
+        <span class="text-indigo-600 text-5xl font-bold">←</span>
+      </div>
+
       <h1 class="text-2xl font-bold text-indigo-700 mb-6 text-center">
         Student Registration
       </h1>
@@ -8,11 +16,23 @@
       <form @submit.prevent="handleSubmit" class="space-y-5">
         <!-- Name -->
         <div>
-          <label class="block text-gray-700 font-medium mb-1">Full Name</label>
+          <label class="block text-gray-700 font-medium mb-1">Name</label>
           <input
             v-model="form.name"
             type="text"
-            placeholder="John Doe"
+            placeholder="Jozef"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            required
+          />
+        </div>
+
+        <!-- Surname -->
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Surname</label>
+          <input
+            v-model="form.surname"
+            type="text"
+            placeholder="Mrkvicka"
             class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             required
           />
@@ -22,9 +42,22 @@
         <div>
           <label class="block text-gray-700 font-medium mb-1">Student Email</label>
           <input
-            v-model="form.studentEmail"
+            v-model="form.email"
             type="email"
-            placeholder="example@student.university.com"
+            placeholder="example@student.ukf.sk"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            required
+          />
+          <p class="text-xs text-gray-500 mt-1">Email must end with @student.ukf.sk</p>
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="block text-gray-700 font-medium mb-1">Password</label>
+          <input
+            v-model="form.pwd"
+            type="password"
+            placeholder="••••••••"
             class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             required
           />
@@ -52,11 +85,11 @@
           />
         </div>
 
-        <!-- Program -->
+        <!-- Study Program -->
         <div>
           <label class="block text-gray-700 font-medium mb-1">Study Program</label>
           <select
-            v-model="form.program"
+            v-model="form.field"
             class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             required
           >
@@ -78,11 +111,13 @@
       </form>
 
       <!-- Success Message -->
-      <p
-        v-if="submitted"
-        class="text-green-600 text-center mt-4 font-medium"
-      >
+      <p v-if="submitted" class="text-green-600 text-center mt-4 font-medium">
         Registration successful! Check your email for confirmation.
+      </p>
+
+      <!-- Error Message -->
+      <p v-if="error" class="text-red-600 text-center mt-4 font-medium">
+        {{ error }}
       </p>
 
       <router-link
@@ -96,27 +131,79 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
 import { ref } from 'vue'
+import axios from '../api.js'
+
+const router = useRouter()
+
+const goBack = () => {
+  router.back()
+}
 
 const form = ref({
+  email: '',
+  pwd: '',
   name: '',
-  studentEmail: '',
+  surname: '',
   altEmail: '',
   phone: '',
-  program: '',
+  field: '',
+  role: 'student'
 })
 
 const submitted = ref(false)
+const error = ref('')
 
-const handleSubmit = () => {
-  console.log('Submitted form:', form.value)
-  submitted.value = true
+// ✅ Фронт-проверка email
+const isValidStudentEmail = (email) => {
+  return email.endsWith("@student.ukf.sk")
+}
 
-  // В будущем: заменить на API POST /api/students/register
-  // axios.post('/api/students/register', form.value)
+const handleSubmit = async () => {
+  // 1️⃣ Проверка email
+  if (!isValidStudentEmail(form.value.email)) {
+    error.value = "Email must end with @student.ukf.sk"
+    submitted.value = false
+    return
+  }
+
+  try {
+    console.log('Submitting form:', form.value)
+
+    // 2️⃣ Отправка на бэкенд
+    const response = await axios.post('/student', { ...form.value }) // если бэк слушает /student
+
+    // 3️⃣ Если статус 201 CREATED
+    if (response.status === 201) {
+      submitted.value = true
+      error.value = ''
+
+      // Перенаправление на логин через 3 сек
+      setTimeout(() => {
+        router.push('/login')
+      }, 3000)
+    }
+  } catch (e) {
+    // 4️⃣ Обработка ошибок
+    if (e.response) {
+      // Ошибки от бэка
+      if (e.response.status === 400) {
+        error.value = "Invalid data. Check your input."
+      } else if (e.response.status === 409) {
+        error.value = "Email already registered."
+      } else {
+        error.value = `Server error: ${e.response.status}`
+      }
+    } else {
+      // Ошибки сети или другие
+      error.value = "Registration failed. Please try again."
+    }
+    submitted.value = false
+  }
 }
 </script>
 
 <style scoped>
-/* пока всё на tailwind */
+/* Tailwind CSS, стили уже подключены */
 </style>

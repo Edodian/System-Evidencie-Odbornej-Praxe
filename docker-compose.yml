@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # MariaDB
+  mariadb:
+    image: mariadb:11.2
+    container_name: dev-mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: sep_dev
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+      MYSQL_ROOT_HOST: '%'
+    ports:
+      - "3306:3306"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./docker/mariadb/init:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot backend
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile.dev
+    container_name: dev-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: ${PROFILE:-dev}
+      # These are fallback values, will be overridden by profile-specific configurations
+      # SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/sep
+      # SPRING_DATASOURCE_USERNAME: appuser
+      # SPRING_DATASOURCE_PASSWORD: apppassword
+    ports:
+      - "8081:8081"
+      - "5005:5005"  # Debug port
+    volumes:
+      - ./Backend:/app
+      - maven_cache:/root/.m2
+    networks:
+      - app-network
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    command: ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+
+  # Vue.js frontend
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile.dev
+    container_name: dev-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:8081
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./Frontend:/app
+      - frontend_node_modules:/app/node_modules  # Changed from anonymous to named volume
+    networks:
+      - app-network
+    depends_on:
+      - backend
+    command: npm run dev -- --host 0.0.0.0
+
+  # Mailpit for email testing
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: dev-mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"  # Web UI
+      - "1025:1025"  # SMTP port
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mariadb_data:
+  maven_cache:
+  frontend_node_modules:
