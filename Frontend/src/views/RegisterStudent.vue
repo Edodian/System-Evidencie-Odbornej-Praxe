@@ -51,18 +51,6 @@
           <p class="text-xs text-gray-500 mt-1">Email must end with @student.ukf.sk</p>
         </div>
 
-        <!-- Password -->
-        <div>
-          <label class="block text-gray-700 font-medium mb-1">Password</label>
-          <input
-            v-model="form.pwd"
-            type="password"
-            placeholder="••••••••"
-            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            required
-          />
-        </div>
-
         <!-- Alternate Email -->
         <div>
           <label class="block text-gray-700 font-medium mb-1">Alternate Email</label>
