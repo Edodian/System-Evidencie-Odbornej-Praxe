@@ -1,4 +1,3 @@
-// src/main/java/sk/ukf/sep/controller/UserController.java
 package sk.ukf.sep.controller;
 
 import lombok.RequiredArgsConstructor;
@@ -6,30 +5,48 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import sk.ukf.sep.entity.User;
 import sk.ukf.sep.repository.UserRepository;
+import sk.ukf.sep.service.EmailService;
 
 import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-//@RequestMapping("/users")
 public class UserController {
 
     private final UserRepository repository;
+    private final EmailService emailService;
 
     @PostMapping("/student")
     public ResponseEntity<Map<String, Object>> registerStudent(@RequestBody User student) {
-        if (student == null || student.getEmail() == null || !student.getEmail().endsWith("@student.ukf.sk")) {
-            return ResponseEntity.badRequest().build();
+        if (student == null || student.getEmail() == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Missing or invalid email."));
         }
-        student.setPwd(null);                // trigger @PrePersist to auto-generate
+
+        if (!student.getEmail().endsWith("@student.ukf.sk")) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Only student email addresses ending with @student.ukf.sk are allowed."));
+        }
+
+        student.setPwd(null); // trigger @PrePersist
         User saved = repository.save(student);
 
-        // Previously returned UserRegistrationDTO(id, email, tempPassword)
+        // send temp password via mailpit
+        try {
+            emailService.sendTemporaryPassword(
+                    saved.getEmail(),
+                    saved.getName() + " " + saved.getSurname(),
+                    saved.getPwd()
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to send registration email: " + e.getMessage());
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of(
                         "id", saved.getId(),
                         "email", saved.getEmail(),
-                        "pwd", saved.getPwd()   // temp only (same as before)
+                        "pwd", saved.getPwd()
                 ));
     }
 
@@ -40,17 +57,18 @@ public class UserController {
 
         User u = repository.findByEmail(email);
         if (u == null || u.getPwd() == null || !u.getPwd().equals(password)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid email or password."));
         }
-        if (u.isMustChangePwd()) { // if first login
-            // Previously returned new AuthResponse("PASSWORD_CHANGE_REQUIRED", u.getId())
+
+        if (u.isMustChangePwd()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of(
                             "status", "PASSWORD_CHANGE_REQUIRED",
-                            "userId", u.getId()
+                            "message", "You must change your temporary password before accessing the system."
                     ));
         }
-        // Previously returned new AuthResponse("OK", u.getId())
+
         return ResponseEntity.ok(Map.of(
                 "status", "OK",
                 "userId", u.getId()
@@ -65,16 +83,43 @@ public class UserController {
 
         User u = repository.findByEmail(email);
         if (u == null || u.getPwd() == null || !u.getPwd().equals(oldPassword)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid credentials."));
         }
-        u.setPwd(newPassword);   // no hashing for now (same as before)
+
+        u.setPwd(newPassword);
         u.setMustChangePwd(false);
         repository.save(u);
 
-        // Previously returned new AuthResponse("PASSWORD_CHANGED", u.getId())
         return ResponseEntity.ok(Map.of(
                 "status", "PASSWORD_CHANGED",
-                "userId", u.getId()
+                "message", "Password successfully changed. You can now log in normally."
+        ));
+    }
+
+    // this endpoint requires password to be changed first
+    @GetMapping("/student/profile")
+    public ResponseEntity<Map<String, Object>> getProfile(@RequestParam String email) {
+        User u = repository.findByEmail(email);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "User not found."));
+        }
+
+        if (u.isMustChangePwd()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Change your temporary password first."));
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "id", u.getId(),
+                "email", u.getEmail(),
+                "name", u.getName(),
+                "surname", u.getSurname(),
+                "role", u.getRole(),
+                "altEmail", u.getAltEmail(),
+                "phone", u.getPhone(),
+                "field", u.getField()
         ));
     }
 }
