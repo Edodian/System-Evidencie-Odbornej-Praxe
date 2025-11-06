@@ -1,61 +1,80 @@
+// src/main/java/sk/ukf/sep/controller/UserController.java
 package sk.ukf.sep.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-import sk.ukf.sep.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
 import sk.ukf.sep.entity.User;
+import sk.ukf.sep.repository.UserRepository;
+
+import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
+//@RequestMapping("/users")
 public class UserController {
 
-    final private UserRepository repository;
-
-    @Autowired
-    public UserController(UserRepository repository) {
-        this.repository = repository;
-    }
+    private final UserRepository repository;
 
     @PostMapping("/student")
-    public ResponseEntity<User> registerStudent(
-            @RequestBody User student
-    ) {
-        System.out.println(student);
-        if (student.getEmail().endsWith("@student.ukf.sk")){
-            User savedStudent = repository.save(student);
-            System.out.println(savedStudent);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedStudent);
+    public ResponseEntity<Map<String, Object>> registerStudent(@RequestBody User student) {
+        if (student == null || student.getEmail() == null || !student.getEmail().endsWith("@student.ukf.sk")) {
+            return ResponseEntity.badRequest().build();
         }
-        else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+        student.setPwd(null);                // trigger @PrePersist to auto-generate
+        User saved = repository.save(student);
+
+        // Previously returned UserRegistrationDTO(id, email, tempPassword)
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of(
+                        "id", saved.getId(),
+                        "email", saved.getEmail(),
+                        "pwd", saved.getPwd()   // temp only (same as before)
+                ));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<User> loginStudent(
-            @RequestBody User credentials
-    ) {
-        try {
-            // Create authentication token with credentials
-            UsernamePasswordAuthenticationToken authenticationToken = 
-                    new UsernamePasswordAuthenticationToken(credentials.getEmail(), credentials.getPwd());
-            
-            // Retrieve the authenticated user from database
-            User user = repository.findByEmail(credentials.getEmail());
-            
-            return ResponseEntity.ok(user);
-        } catch (BadCredentialsException e) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> req) {
+        String email = req.get("email");
+        String password = req.get("password");
+
+        User u = repository.findByEmail(email);
+        if (u == null || u.getPwd() == null || !u.getPwd().equals(password)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        if (u.isMustChangePwd()) { // if first login
+            // Previously returned new AuthResponse("PASSWORD_CHANGE_REQUIRED", u.getId())
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of(
+                            "status", "PASSWORD_CHANGE_REQUIRED",
+                            "userId", u.getId()
+                    ));
+        }
+        // Previously returned new AuthResponse("OK", u.getId())
+        return ResponseEntity.ok(Map.of(
+                "status", "OK",
+                "userId", u.getId()
+        ));
     }
 
+    @PostMapping("/change-password")
+    public ResponseEntity<Map<String, Object>> changePassword(@RequestBody Map<String, String> req) {
+        String email = req.get("email");
+        String oldPassword = req.get("oldPassword");
+        String newPassword = req.get("newPassword");
+
+        User u = repository.findByEmail(email);
+        if (u == null || u.getPwd() == null || !u.getPwd().equals(oldPassword)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        u.setPwd(newPassword);   // no hashing for now (same as before)
+        u.setMustChangePwd(false);
+        repository.save(u);
+
+        // Previously returned new AuthResponse("PASSWORD_CHANGED", u.getId())
+        return ResponseEntity.ok(Map.of(
+                "status", "PASSWORD_CHANGED",
+                "userId", u.getId()
+        ));
+    }
 }
