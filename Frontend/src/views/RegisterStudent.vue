@@ -1,13 +1,14 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-6">
     <div class="max-w-md w-full bg-white rounded-2xl shadow-md p-8">
-      <!-- Back Arrow Box в левом верхнем углу -->
-    <div 
-  class="absolute top-6 left-6 w-16 h-16 flex items-center justify-center bg-indigo-50 rounded-lg cursor-pointer hover:bg-indigo-100"
-  @click="goBack"
->
-  <span class="text-indigo-600 text-5xl font-bold">←</span>
-</div>
+      <!-- Back Arrow Box -->
+      <div 
+        class="absolute top-6 left-6 w-16 h-16 flex items-center justify-center bg-indigo-50 rounded-lg cursor-pointer hover:bg-indigo-100"
+        @click="goBack"
+      >
+        <span class="text-indigo-600 text-5xl font-bold">←</span>
+      </div>
+
       <h1 class="text-2xl font-bold text-indigo-700 mb-6 text-center">
         Student Registration
       </h1>
@@ -25,15 +26,15 @@
           />
         </div>
 
-        <!-- Surame -->
+        <!-- Surname -->
         <div>
-          <label class="block text-gray-700 font-medium mb-1">Surame</label>
+          <label class="block text-gray-700 font-medium mb-1">Surname</label>
           <input
-              v-model="form.surname"
-              type="text"
-              placeholder="Mrkvicka"
-              class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              required
+            v-model="form.surname"
+            type="text"
+            placeholder="Mrkvicka"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            required
           />
         </div>
 
@@ -43,10 +44,11 @@
           <input
             v-model="form.email"
             type="email"
-            placeholder="example@student.university.com"
+            placeholder="example@student.ukf.sk"
             class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             required
           />
+          <p class="text-xs text-gray-500 mt-1">Email must end with @student.ukf.sk</p>
         </div>
 
         <!-- Password -->
@@ -83,7 +85,7 @@
           />
         </div>
 
-        <!-- Program -->
+        <!-- Study Program -->
         <div>
           <label class="block text-gray-700 font-medium mb-1">Study Program</label>
           <select
@@ -109,18 +111,12 @@
       </form>
 
       <!-- Success Message -->
-      <p
-        v-if="submitted"
-        class="text-green-600 text-center mt-4 font-medium"
-      >
+      <p v-if="submitted" class="text-green-600 text-center mt-4 font-medium">
         Registration successful! Check your email for confirmation.
       </p>
 
       <!-- Error Message -->
-      <p
-        v-if="error"
-        class="text-red-600 text-center mt-4 font-medium"
-      >
+      <p v-if="error" class="text-red-600 text-center mt-4 font-medium">
         {{ error }}
       </p>
 
@@ -159,14 +155,23 @@ const form = ref({
 const submitted = ref(false)
 const error = ref('')
 
+// ✅ Фронт-проверка email
+const isValidStudentEmail = (email) => {
+  return email.endsWith("@student.ukf.sk")
+}
+
 const handleSubmit = async () => {
+  if (!isValidStudentEmail(form.value.email)) {
+    error.value = "Email must end with @student.ukf.sk"
+    submitted.value = false
+    return
+  }
+
   try {
     console.log('Submitting form:', form.value)
-    // send POST to backend using baseURL from api.js
     await axios.post('/student', { ...form.value })
     submitted.value = true
     error.value = ''
-    // show message 3 seconds then redirect to login
     setTimeout(() => {
       router.push('/login')
     }, 3000)
@@ -178,7 +183,6 @@ const handleSubmit = async () => {
 }
 </script>
 
-
 <style scoped>
-/* пока всё на tailwind */
+/* Tailwind CSS, стили уже подключены */
 </style>
