@@ -132,6 +132,8 @@ const viewDetails = (id) => {
 }
 
 const logout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('role')
   router.push('/login')
 }
 
