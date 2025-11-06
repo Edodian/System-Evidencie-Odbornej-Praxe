@@ -2,27 +2,27 @@
   <div class="min-h-screen bg-gray-50">
     <!-- Header -->
     <header class="bg-indigo-600 text-white py-4 shadow-md">
-  <div class="max-w-6xl mx-auto flex justify-between items-center px-6">
-    <h1 class="text-2xl font-semibold">Student Dashboard</h1>
+      <div class="max-w-6xl mx-auto flex justify-between items-center px-6">
+        <h1 class="text-2xl font-semibold">Student Dashboard</h1>
 
-    <!-- Кнопки справа -->
-    <div class="flex items-center space-x-2">
-      <button
-        @click="goToChangePassword"
-        class="bg-white text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-indigo-100"
-      >
-        Change Password
-      </button>
+        <!-- Кнопки справа -->
+        <div class="flex items-center space-x-2">
+          <button
+            @click="goToChangePassword"
+            class="bg-white text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-indigo-100"
+          >
+            Change Password
+          </button>
 
-      <button
-        @click="logout"
-        class="bg-white text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-indigo-100"
-      >
-        Logout
-      </button>
-    </div>
-  </div>
-</header>
+          <button
+            @click="logout"
+            class="bg-white text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-indigo-100"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
 
     <!-- Main Content -->
     <main class="max-w-6xl mx-auto py-10 px-6">
@@ -76,12 +76,27 @@
                   {{ internship.status }}
                 </span>
               </td>
-              <td class="py-3 px-4 text-center">
+              <td class="py-3 px-4 text-center space-y-2">
                 <button
-                  class="text-indigo-600 hover:text-indigo-800 font-medium"
+                  class="text-indigo-600 hover:text-indigo-800 font-medium block w-full"
                   @click="viewDetails(internship.id)"
                 >
                   View Details
+                </button>
+
+                <!-- 🔹 Upload Buttons -->
+                <button
+                  @click="uploadFile('agreement', internship.id)"
+                  class="bg-indigo-100 text-indigo-700 text-sm px-3 py-1 rounded-lg hover:bg-indigo-200 transition-all w-full"
+                >
+                  Upload Agreement
+                </button>
+
+                <button
+                  @click="uploadFile('report', internship.id)"
+                  class="bg-purple-100 text-purple-700 text-sm px-3 py-1 rounded-lg hover:bg-purple-200 transition-all w-full"
+                >
+                  Upload Report
                 </button>
               </td>
             </tr>
@@ -137,14 +152,25 @@ const logout = () => {
   router.push('/login')
 }
 
-// 🔹 переход на страницу добавления стажировки
 const goToAddInternship = () => {
   router.push('/internship/add')
 }
 
 const goToChangePassword = () => {
-  router.push({ path: "/change-password", query: { from: "student" } })
+  router.push({ path: '/change-password', query: { from: 'student' } })
 }
 
-
+// 🔹 Mock upload logic (заменить на backend позже)
+const uploadFile = (type, internshipId) => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.pdf,.doc,.docx'
+  input.onchange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    alert(`${type === 'agreement' ? 'Agreement' : 'Report'} uploaded for internship #${internshipId}: ${file.name}`)
+    // 🚀 TODO: заменить на axios.post(`/api/upload/${internshipId}`, file)
+  }
+  input.click()
+}
 </script>
