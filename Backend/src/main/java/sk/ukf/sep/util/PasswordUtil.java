@@ -1,5 +1,6 @@
 package sk.ukf.sep.util;
 
+<<<<<<< HEAD
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,4 +29,7 @@ public final class PasswordUtil {
     }
 
     private static char pick(String s) { return s.charAt(RAND.nextInt(s.length())); }
+=======
+public class PasswordUtil {
+>>>>>>> 29be1dc50e9b87c59bed4dc9dd1a677775042f24
 }
