@@ -3,13 +3,13 @@
     <div
       class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 border border-gray-100 transition-all duration-300 hover:shadow-xl"
     >
-    <!-- Back Arrow Box в левом верхнем углу -->
-    <div 
-  class="absolute top-6 left-6 w-16 h-16 flex items-center justify-center bg-indigo-50 rounded-lg cursor-pointer hover:bg-indigo-100"
-  @click="goBack"
->
-  <span class="text-indigo-600 text-5xl font-bold">←</span>
-</div>
+      <!-- Back Arrow Box -->
+      <div 
+        class="absolute top-6 left-6 w-16 h-16 flex items-center justify-center bg-indigo-50 rounded-lg cursor-pointer hover:bg-indigo-100"
+        @click="goBack"
+      >
+        <span class="text-indigo-600 text-5xl font-bold">←</span>
+      </div>
 
       <h1 class="text-3xl font-bold text-center text-indigo-600 mb-6">Login</h1>
 
@@ -48,7 +48,7 @@
         </button>
       </form>
 
-      <!-- Под кнопкой Login -->
+      <!-- Forgot password -->
       <p class="text-center mt-4">
         <router-link to="/forgot-password" class="text-indigo-600 hover:underline text-sm">
           Forgot your password?
@@ -93,19 +93,39 @@ const login = async () => {
   error.value = ''
 
   try {
-    // send POST to backend and receive User object as response
+    // 🟡 === ВРЕМЕННАЯ МОК-АВТОРИЗАЦИЯ (без бэка) ===
+    // Имитация “ответа” от сервера
+    const mockUser = {
+      email: email.value,
+      role: email.value.includes('company') 
+        ? 'company' 
+        : email.value.includes('guarantor') 
+        ? 'guarantor' 
+        : 'student'
+    }
+
+    // Сохраняем “токен” и “роль” в localStorage
+    localStorage.setItem('token', 'mockToken123')
+    localStorage.setItem('role', mockUser.role)
+
+    console.log('✅ Logged in as:', mockUser.role)
+
+    // Перенаправляем по роли
+    if (mockUser.role === 'company') router.push('/dashboard/company')
+    else if (mockUser.role === 'guarantor') router.push('/dashboard/guarantor')
+    else router.push('/dashboard/student')
+
+    // 🟢 === КОГДА ПОДКЛЮЧИШЬ БЭК ===
+    // Раскомментируешь этот код и уберёшь мок выше 👇
+    /*
     const res = await axios.post('/login', {
       email: email.value,
       pwd: password.value
     })
-
     const user = res.data
-    console.log('Logged in user:', user)
-
-    // navigate based on returned user.role if present, otherwise fallback
-    if (user && user.role === 'company') router.push('/dashboard/company')
-    else if (user && user.role === 'guarantor') router.push('/dashboard/guarantor')
-    else router.push('/dashboard/student')
+    localStorage.setItem('token', user.token)
+    localStorage.setItem('role', user.role)
+    */
   } catch (e) {
     console.error('Login error:', e)
     error.value = e.response?.data?.message || 'Login failed. Please try again.'
