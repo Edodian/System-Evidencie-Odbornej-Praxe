@@ -161,6 +161,7 @@ const isValidStudentEmail = (email) => {
 }
 
 const handleSubmit = async () => {
+  // 1️⃣ Проверка email
   if (!isValidStudentEmail(form.value.email)) {
     error.value = "Email must end with @student.ukf.sk"
     submitted.value = false
@@ -169,15 +170,35 @@ const handleSubmit = async () => {
 
   try {
     console.log('Submitting form:', form.value)
-    await axios.post('/student', { ...form.value })
-    submitted.value = true
-    error.value = ''
-    setTimeout(() => {
-      router.push('/login')
-    }, 3000)
+
+    // 2️⃣ Отправка на бэкенд
+    const response = await axios.post('/student', { ...form.value }) // если бэк слушает /student
+
+    // 3️⃣ Если статус 201 CREATED
+    if (response.status === 201) {
+      submitted.value = true
+      error.value = ''
+
+      // Перенаправление на логин через 3 сек
+      setTimeout(() => {
+        router.push('/login')
+      }, 3000)
+    }
   } catch (e) {
-    console.error('Registration error:', e)
-    error.value = 'Registration failed. Please try again.'
+    // 4️⃣ Обработка ошибок
+    if (e.response) {
+      // Ошибки от бэка
+      if (e.response.status === 400) {
+        error.value = "Invalid data. Check your input."
+      } else if (e.response.status === 409) {
+        error.value = "Email already registered."
+      } else {
+        error.value = `Server error: ${e.response.status}`
+      }
+    } else {
+      // Ошибки сети или другие
+      error.value = "Registration failed. Please try again."
+    }
     submitted.value = false
   }
 }
