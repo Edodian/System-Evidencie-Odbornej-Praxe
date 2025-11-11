@@ -52,7 +52,11 @@ router.beforeEach((to, from, next) => {
   // Когда будет бекенд — заменим это на реальную JWT-проверку (через API).
   const token = localStorage.getItem('token')  // <-- заменить на проверку валидности токена через сервер
   const role = localStorage.getItem('role')    // <-- заменить на роль из backend payload / user API
-
+  const mustChangePwd = localStorage.getItem('mustChangePwd') === 'true'
+  
+  if (mustChangePwd && to.path !== '/change-password') {
+    return next('/change-password')
+  }
   // === Проверка приватных роутов ===
   if (to.meta.requiresAuth) {
     if (!token) {
