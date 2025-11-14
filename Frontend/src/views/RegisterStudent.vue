@@ -126,7 +126,7 @@ import axios from '../api.js'
 const router = useRouter()
 
 const goBack = () => {
-  router.back()
+  router.push('/enter-temp-password')
 }
 
 const form = ref({
@@ -169,7 +169,7 @@ const handleSubmit = async () => {
 
       // Перенаправление на логин через 3 сек
       setTimeout(() => {
-        router.push('/login')
+        router.push('/enter-temp-password')
       }, 3000)
     }
   } catch (e) {

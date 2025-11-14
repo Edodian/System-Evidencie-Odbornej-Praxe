@@ -18,6 +18,9 @@ const routes = [
   { path: '/internship/add', name: 'AddInternship', component: () => import('@/views/AddInternship.vue')},
   { path: '/forgot-password', name: 'ForgotPassword', component: () => import('@/views/ForgotPassword.vue')},
   { path: '/change-password', name: 'ChangePassword', component: () => import('@/views/ChangePassword.vue')},
+  { path: '/enter-temp-password', name: 'EnterTempPassword', component: () => import('@/views/EnterTempPassword.vue') },
+  { path: '/create-new-password', name: 'CreatePassword', component: () => import('@/views/CreateNewPassword.vue') },
+
 
   // === Dashboards (private routes) ===
   {
