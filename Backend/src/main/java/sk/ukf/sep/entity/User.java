@@ -26,6 +26,9 @@ public class User {
     @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)
     private String pwd;
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+    @Column(nullable = false)
+    private String tempPwd;
 
     @Column(nullable = false)
     private String name;
@@ -41,8 +44,8 @@ public class User {
     @Column
     private String field;
 
-    @Column(name = "must_change_pwd", nullable = false)
-    private boolean mustChangePwd = true;
+//    @Column(name = "must_change_pwd", nullable = false)
+//    private boolean mustChangePwd = true;
 
     @org.hibernate.annotations.CreationTimestamp
     private java.time.LocalDateTime createdAt;
@@ -51,9 +54,9 @@ public class User {
 
     @PrePersist
     private void ensurePassword() {
-        if (this.pwd == null || this.pwd.isBlank()) {
-            this.pwd = sk.ukf.sep.util.PasswordUtil.generate(14); // no hashing for now
+        if ((this.pwd == null || this.pwd.isBlank())&&(this.tempPwd == null || this.tempPwd.isBlank())) {
+            this.tempPwd = sk.ukf.sep.util.PasswordUtil.generate(8); // no hashing for now
         }
-        this.mustChangePwd = true; // new account pwd change
+//        this.mustChangePwd = true; // new account pwd change
     }
 }
