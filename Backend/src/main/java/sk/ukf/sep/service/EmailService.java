@@ -31,5 +31,23 @@ public class EmailService {
                 "Best regards,\nSEP");
         mailSender.send(message);
     }
+    public void sendPasswordResetCode(String to, String fullName, String resetCode) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("Password reset code – SEP");
+
+        message.setText(
+                "Dear " + fullName + ",\n\n" +
+                        "A request was made to reset your SEP account password.\n\n" +
+                        "Your one-time password reset code is:\n\n" +
+                        "     " + resetCode + "\n\n" +
+                        "Use this code to log in and set a new password.\n" +
+                        "The code is valid only once.\n\n" +
+                        "If you did NOT request a password reset, please ignore this message.\n\n" +
+                        "Best regards,\nSEP Team"
+        );
+
+        mailSender.send(message);
+    }
 }
 

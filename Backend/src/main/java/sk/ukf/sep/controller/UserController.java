@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import sk.ukf.sep.entity.User;
 import sk.ukf.sep.repository.UserRepository;
 import sk.ukf.sep.service.EmailService;
+import sk.ukf.sep.util.PasswordUtil;
 
 import java.util.Map;
 
@@ -142,4 +143,31 @@ public class UserController {
                 "field", u.getField()
         ));
     }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> requestReset(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+
+        User u = repository.findByEmail(email);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "User not found."));
+        }
+
+        String resetCode = PasswordUtil.generate(10);
+        u.setPwd(resetCode);
+        u.setMustChangePwd(true);
+        repository.save(u);
+
+        emailService.sendPasswordResetCode(
+                u.getEmail(),
+                u.getName() + " " + u.getSurname(),
+                resetCode
+        );
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Reset code was sent to your email."
+        ));
+    }
+
 }
