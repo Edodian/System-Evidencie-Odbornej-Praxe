@@ -160,7 +160,7 @@ const handleSubmit = async () => {
     console.log('Submitting form:', form.value)
 
     // 2️⃣ Отправка на бэкенд
-    const response = await axios.post('/student', { ...form.value }) // если бэк слушает /student
+    const response = await axios.post('/api/student/register', { ...form.value })
 
     // 3️⃣ Если статус 201 CREATED
     if (response.status === 201) {

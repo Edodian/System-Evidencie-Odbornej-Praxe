@@ -1,5 +1,6 @@
 package sk.ukf.sep.controller;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -11,12 +12,14 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/student")
+//@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class UserController {
 
     private final UserRepository repository;
     private final EmailService emailService;
 
-    @PostMapping("/student")
+    @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> registerStudent(@RequestBody User student) {
         if (student == null || student.getEmail() == null) {
             return ResponseEntity.badRequest()
@@ -28,10 +31,10 @@ public class UserController {
                     .body(Map.of("error", "Only student email addresses ending with @student.ukf.sk are allowed."));
         }
 
-        student.setPwd(null); // trigger @PrePersist
+        student.setPwd(null); // trigger @PrePersist to auto-generate temporary password
         User saved = repository.save(student);
 
-        // send temp password via mailpit
+        // send temp password email
         try {
             emailService.sendTemporaryPassword(
                     saved.getEmail(),
@@ -46,12 +49,12 @@ public class UserController {
                 .body(Map.of(
                         "id", saved.getId(),
                         "email", saved.getEmail(),
-                        "pwd", saved.getPwd()
+                        "pwd", saved.getPwd() // only for debugging, remove later
                 ));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> req) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> req, HttpSession session) {
         String email = req.get("email");
         String password = req.get("password");
 
@@ -69,14 +72,22 @@ public class UserController {
                     ));
         }
 
+        session.setAttribute("userId", u.getId()); // new session init
+
         return ResponseEntity.ok(Map.of(
                 "status", "OK",
-                "userId", u.getId()
+                "message", "Login successful. Session started."
         ));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, Object>> logout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully."));
+    }
+
     @PostMapping("/change-password")
-    public ResponseEntity<Map<String, Object>> changePassword(@RequestBody Map<String, String> req) {
+    public ResponseEntity<Map<String, Object>> changePassword(@RequestBody Map<String, String> req, HttpSession session) {
         String email = req.get("email");
         String oldPassword = req.get("oldPassword");
         String newPassword = req.get("newPassword");
@@ -91,16 +102,25 @@ public class UserController {
         u.setMustChangePwd(false);
         repository.save(u);
 
+        // If user was in session, refresh it
+        session.setAttribute("userId", u.getId());
+
         return ResponseEntity.ok(Map.of(
                 "status", "PASSWORD_CHANGED",
                 "message", "Password successfully changed. You can now log in normally."
         ));
     }
 
-    // this endpoint requires password to be changed first
-    @GetMapping("/student/profile")
-    public ResponseEntity<Map<String, Object>> getProfile(@RequestParam String email) {
-        User u = repository.findByEmail(email);
+    @GetMapping("/profile")
+    public ResponseEntity<Map<String, Object>> getProfile(HttpSession session) {
+        Integer userId = (Integer) session.getAttribute("userId");
+
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "You must be logged in."));
+        }
+
+        User u = repository.findById(userId).orElse(null);
         if (u == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "User not found."));

@@ -8,7 +8,7 @@ import sk.ukf.sep.service.OrganizationService;
 
 
 @RestController
-@RequestMapping("/api/organizations")
+@RequestMapping("/api/organization")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class OrganizationController {
