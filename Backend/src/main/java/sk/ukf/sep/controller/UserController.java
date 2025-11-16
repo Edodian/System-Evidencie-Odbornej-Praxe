@@ -187,7 +187,7 @@ public class UserController {
                     .body(Map.of("error", "User not found."));
         }
 
-        String resetCode = PasswordUtil.generate(10);
+        String resetCode = PasswordUtil.generate(8);
 
         u.setTempPwd(resetCode);
         repository.save(u); //updated at registers a new tempPwd
@@ -283,13 +283,13 @@ public class UserController {
         }
 
         // 5 minutes pass check
-        if (!isTempPasswordStillValid(u)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of(
-                            "status", "TEMPORARY_PASSWORD_EXPIRED",
-                            "message", "Temporary password has expired. Please request a new reset code."
-                    ));
-        }
+//        if (!isTempPasswordStillValid(u)) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+//                    .body(Map.of(
+//                            "status", "TEMPORARY_PASSWORD_EXPIRED",
+//                            "message", "Temporary password has expired. Please request a new reset code."
+//                    ));
+//        }
 
         if (!u.getTempPwd().equals(tempPassword)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -310,4 +310,45 @@ public class UserController {
                 "email", u.getEmail()
         ));
     }
+    @PostMapping("/verify-temp-password")
+    public ResponseEntity<Map<String, Object>> verifyTempPassword(@RequestBody Map<String, String> req) {
+
+        String email = req.get("email");
+        String tempPassword = req.get("tempPassword");
+
+        if (email == null || tempPassword == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Missing required fields."));
+        }
+
+        User u = repository.findByEmail(email);
+        if (u == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "User not found."));
+        }
+
+        if (!hasTempPassword(u)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "No active temporary password for this account."));
+        }
+
+        if (!isTempPasswordStillValid(u)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of(
+                            "status", "TEMPORARY_PASSWORD_EXPIRED",
+                            "message", "Temporary password has expired. Please request a new reset code."
+                    ));
+        }
+
+        if (!u.getTempPwd().equals(tempPassword)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid temporary password."));
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "status", "OK",
+                "message", "Temporary password is valid."
+        ));
+    }
+
 }

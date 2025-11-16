@@ -109,16 +109,14 @@ const login = async () => {
     console.error('Login error:', e)
 
     const status = e.response?.status
-    const backendStatus = e.response?.data?.status
+  const backendStatus = e.response?.data?.status
 
-    if (status === 403 && backendStatus === 'PASSWORD_CHANGE_REQUIRED') {
-      // Обязательная смена пароля
-      localStorage.setItem('email', email.value)
-      localStorage.setItem('mustChangePwd', 'true')
-      error.value = 'You must change your temporary password first.'
-      router.push('/change-password')
-      return
-    }
+  if (status === 403 && backendStatus === 'PASSWORD_CREATION_REQUIRED') {
+    localStorage.setItem('email', email.value)
+    error.value = 'You must create your password using temporary code first.'
+    router.push('/enter-temp-password')
+    return
+  }
 
     if (status === 401) {
       error.value = 'Invalid email or password.'

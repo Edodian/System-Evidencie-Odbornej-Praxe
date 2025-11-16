@@ -15,7 +15,6 @@
       </h1>
 
       <form @submit.prevent="createNewPassword" class="space-y-5">
-        
         <div>
           <label class="block text-gray-700 mb-1">New Password</label>
           <input
@@ -53,7 +52,6 @@
         >
           Abort changes
         </button>
-
       </form>
 
       <p v-if="error" class="text-red-600 text-center mt-4">{{ error }}</p>
@@ -62,20 +60,35 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from '../api.js'
 
 const router = useRouter()
 const newPwd = ref('')
 const repeatPwd = ref('')
 const error = ref('')
 
+// 💡 Не даём «просто так» заходить на страницу
+onMounted(() => {
+  const email = sessionStorage.getItem('regEmail') || localStorage.getItem('email')
+  const tempPassword = sessionStorage.getItem('tempPassword')
+
+  if (!email || !tempPassword) {
+    // Нет контекста (ни email, ни кода) → пользователь обошёл флоу
+    router.replace('/login')
+  }
+})
+
 const goBack = () => {
   router.back() 
 }
+
 const abortChange = () => router.push('/login')
 
 const createNewPassword = async () => {
+  error.value = ""
+
   if (newPwd.value !== repeatPwd.value) {
     error.value = "Passwords do not match"
     return
@@ -86,11 +99,60 @@ const createNewPassword = async () => {
     return
   }
 
+  const email = sessionStorage.getItem('regEmail') || localStorage.getItem('email')
+  const tempPassword = sessionStorage.getItem('tempPassword')
+
+  if (!email || !tempPassword) {
+    // Дублирующая защита
+    error.value = "Password reset flow expired. Please start again."
+    router.push('/forgot-password')
+    return
+  }
+
   try {
-    // Пока нет бэка — просто успех
-    router.push('/login')
-  } catch {
-    error.value = "Failed to set password"
+    const res = await axios.post(
+      '/api/student/create-password',
+      {
+        email,
+        tempPassword,
+        newPassword: newPwd.value,
+        confirmPassword: repeatPwd.value
+      },
+      { withCredentials: true }
+    )
+
+    if (res.data.status === 'PASSWORD_CREATED') {
+      sessionStorage.removeItem('regEmail')
+      sessionStorage.removeItem('tempPassword')
+      router.push('/login')
+    } else {
+      error.value = res.data.message || "Failed to set password"
+    }
+  } catch (e) {
+    console.error('Create password error:', e)
+
+    const status = e.response?.status
+    const backendStatus = e.response?.data?.status
+    const backendError = e.response?.data?.error
+
+    // На самом деле до этого момента tempPassword уже был проверен в /verify-temp-password,
+    // так что сюда эти ошибки долетать почти не должны, но на всякий случай:
+
+    if (status === 401 && backendError === 'Invalid temporary password.') {
+      error.value = "Temporary password is wrong."
+      sessionStorage.removeItem('tempPassword')
+      router.push('/enter-temp-password')
+      return
+    }
+
+    if (status === 403 && backendStatus === 'TEMPORARY_PASSWORD_EXPIRED') {
+      error.value = e.response?.data?.message || "Temporary password expired. Please request a new code."
+      sessionStorage.removeItem('tempPassword')
+      router.push('/forgot-password')
+      return
+    }
+
+    error.value = backendError || e.message || "Failed to set password"
   }
 }
 </script>
