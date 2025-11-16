@@ -76,14 +76,16 @@ const handleSubmit = async () => {
   message.value = ""
 
   try {
-    // 🔹 Mock API POST-запрос
     await new Promise((resolve) => setTimeout(resolve, 1000))
     console.log("POST /api/forgot-password", { email: email.value })
 
     message.value = "Password reset link has been sent to your email."
-    setTimeout(() => router.push("/login"), 2500)
+
+    setTimeout(() => router.push("/enter-temp-password"), 800)
+
   } catch (err) {
     error.value = "Something went wrong. Please try again later."
   }
 }
 </script>
+
