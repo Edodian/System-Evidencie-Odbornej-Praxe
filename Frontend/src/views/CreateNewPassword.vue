@@ -1,20 +1,21 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
     <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 relative">
-
+      
       <!-- Back -->
-     <button 
-    @click="goBack"
-    class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-semibold"
-  >
-    ← Back
-  </button>
+      <button 
+        @click="goBack"
+        class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-semibold mb-4"
+      >
+        ← Back
+      </button>
 
       <h1 class="text-2xl font-bold text-center text-indigo-600 mb-6">
         Create New Password
       </h1>
 
       <form @submit.prevent="createNewPassword" class="space-y-5">
+        
         <div>
           <label class="block text-gray-700 mb-1">New Password</label>
           <input
@@ -43,6 +44,16 @@
         >
           Save Password
         </button>
+
+        <!-- Abort button -->
+        <button
+          type="button"
+          @click="abortChange"
+          class="w-full mt-3 text-indigo-600 font-medium py-2 rounded-lg hover:bg-indigo-50 transition"
+        >
+          Abort changes
+        </button>
+
       </form>
 
       <p v-if="error" class="text-red-600 text-center mt-4">{{ error }}</p>
@@ -53,14 +64,16 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from '../api.js'
 
 const router = useRouter()
 const newPwd = ref('')
 const repeatPwd = ref('')
 const error = ref('')
 
-const goBack = () => router.back()
+const goBack = () => {
+  router.back() 
+}
+const abortChange = () => router.push('/login')
 
 const createNewPassword = async () => {
   if (newPwd.value !== repeatPwd.value) {
@@ -74,19 +87,9 @@ const createNewPassword = async () => {
   }
 
   try {
-    // 🟡 пока нет бекенда — мок
+    // Пока нет бэка — просто успех
     router.push('/login')
-
-    // 🔵 потом:
-    /*
-    const res = await axios.post('/auth/set-password', {
-      password: newPwd.value
-    })
-    if (res.status === 200) {
-      router.push('/login')
-    }
-    */
-  } catch (e) {
+  } catch {
     error.value = "Failed to set password"
   }
 }

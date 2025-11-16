@@ -126,7 +126,7 @@ import axios from '../api.js'
 const router = useRouter()
 
 const goBack = () => {
-  router.push('/enter-temp-password')
+  router.push('/')
 }
 
 const form = ref({
