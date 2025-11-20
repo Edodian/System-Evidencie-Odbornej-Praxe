@@ -8,6 +8,10 @@ COPY package*.json ./
 # Устанавливаем зависимости
 RUN npm install
 
+# Fix esbuild permissions
+RUN chmod -R +x node_modules/.bin node_modules/@esbuild/*/bin/* 2>/dev/null || true
+
+
 # Копируем остальные файлы
 COPY . .
 
