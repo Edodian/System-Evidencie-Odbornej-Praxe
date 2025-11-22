@@ -1,10 +1,9 @@
 package sk.ukf.sep.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import sk.ukf.sep.entity.Internship;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import sk.ukf.sep.dto.InternshipDTO;
 import sk.ukf.sep.service.InternshipService;
 
 @RestController
@@ -15,4 +14,17 @@ import sk.ukf.sep.service.InternshipService;
 public class InternshipController {
 
     private final InternshipService internshipService;
+
+    @PostMapping("/register")
+    public ResponseEntity<?> registerInternship(InternshipDTO dto) {
+        internshipService.registerInternship(dto);
+        return ResponseEntity.ok("Internship registered successfully.");
+    }
+
+    @PostMapping("/change_status")
+    public ResponseEntity<?> changeInternshipStatus(InternshipDTO dto) {
+        internshipService.changeStatus(dto);
+        return ResponseEntity.ok("Internship status changed successfully.");
+    }
+
 }
