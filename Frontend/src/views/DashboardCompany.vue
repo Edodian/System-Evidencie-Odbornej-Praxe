@@ -27,6 +27,49 @@
     <div class="max-w-6xl mx-auto mt-8 bg-white rounded-xl shadow-md p-6">
       <h2 class="text-xl font-semibold text-indigo-700 mb-4">Internship Applications</h2>
 
+      <!-- 🔹 Фильтры -->
+      <div class="flex flex-wrap items-center gap-4 mb-6">
+        <div>
+          <label class="text-gray-700 mr-2">Student:</label>
+          <input
+            v-model="filters.student"
+            type="text"
+            class="border rounded px-2 py-1"
+            placeholder="e.g. John Doe"
+          />
+        </div>
+
+        <div>
+          <label class="text-gray-700 mr-2">Program:</label>
+          <input
+            v-model="filters.program"
+            type="text"
+            class="border rounded px-2 py-1"
+            placeholder="e.g. Informatics"
+          />
+        </div>
+
+        <div>
+          <label class="text-gray-700 mr-2">Period:</label>
+          <input
+            v-model="filters.period"
+            type="text"
+            class="border rounded px-2 py-1"
+            placeholder="e.g. Mar–Jun"
+          />
+        </div>
+
+        <div>
+          <label class="text-gray-700 mr-2">Status:</label>
+          <select v-model="filters.status" class="border rounded px-2 py-1">
+            <option value="">All</option>
+            <option>Pending</option>
+            <option>Accepted</option>
+            <option>Rejected</option>
+          </select>
+        </div>
+      </div>
+
       <table class="min-w-full border-collapse">
         <thead>
           <tr class="bg-indigo-50 text-indigo-700">
@@ -40,7 +83,7 @@
         </thead>
         <tbody>
           <tr
-            v-for="(app, index) in applications"
+            v-for="(app, index) in filteredApplications"
             :key="index"
             class="border-t hover:bg-gray-50 transition"
           >
@@ -118,7 +161,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue"
+import { ref, computed } from "vue"
 import { useRouter } from "vue-router"
 
 const router = useRouter()
@@ -152,7 +195,27 @@ const applications = ref([
   }
 ])
 
-// ✅ Загрузка документа
+// 📌 Фильтры
+const filters = ref({
+  student: "",
+  program: "",
+  period: "",
+  status: ""
+})
+
+// 📌 Фильтрация
+const filteredApplications = computed(() => {
+  return applications.value.filter(app => {
+    const matchesStudent = app.student.toLowerCase().includes(filters.value.student.toLowerCase())
+    const matchesProgram = app.program.toLowerCase().includes(filters.value.program.toLowerCase())
+    const matchesPeriod = app.period.toLowerCase().includes(filters.value.period.toLowerCase())
+    const matchesStatus = !filters.value.status || app.status === filters.value.status
+
+    return matchesStudent && matchesProgram && matchesPeriod && matchesStatus
+  })
+})
+
+// 📌 Загрузка документа
 const handleFileUpload = (event, index) => {
   const file = event.target.files[0]
   if (!file) return
@@ -163,12 +226,12 @@ const handleFileUpload = (event, index) => {
   applications.value[index].status = "Pending"
 }
 
-// ✅ Просмотр документа
+// 📌 Просмотр документа
 const viewDocument = (url) => {
   window.open(url, "_blank")
 }
 
-// ✅ Обновление статуса
+// 📌 Обновление статуса
 const updateStatus = (index, newStatus) => {
   applications.value[index].status = newStatus
 }
