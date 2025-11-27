@@ -4,116 +4,150 @@
     <header class="bg-indigo-600 text-white py-4 shadow-md">
       <div class="max-w-6xl mx-auto flex justify-between items-center px-6">
         <h1 class="text-2xl font-semibold">Guarantor Dashboard</h1>
-        <button
-          @click="logout"
-          class="bg-white text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-indigo-100"
-        >
-          Logout
-        </button>
+        
+        <div class="flex items-center gap-3">
+          <!-- Companies Button - теперь с иконкой -->
+          <button
+            @click="goToCompanies"
+            class="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 backdrop-blur-sm border border-white/20"
+            title="View Companies"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+            <span class="hidden sm:inline">Companies</span>
+          </button>
+
+          <!-- Logout Button - сдвинут вправо и с иконкой -->
+          <button
+            @click="logout"
+            class="flex items-center gap-2 bg-white text-indigo-600 font-medium px-4 py-2 rounded-lg hover:bg-indigo-100 transition-all duration-200 shadow-sm hover:shadow-md"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            <span class="hidden sm:inline">Logout</span>
+          </button>
+        </div>
       </div>
     </header>
-  
+
     <!-- 🔹 Фильтры -->
-    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-      <div class="flex flex-wrap gap-4">
-        <div>
-          <label class="text-gray-700 mr-2">Student:</label>
-          <input
-            v-model="filters.student"
-            type="text"
-            placeholder="e.g. John Doe"
-            class="border rounded px-2 py-1"
-          />
+    <div class="max-w-6xl mx-auto px-6 mt-6">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div class="flex flex-wrap gap-4">
+          <div>
+            <label class="text-gray-700 mr-2 text-sm font-medium">Student:</label>
+            <input
+              v-model="filters.student"
+              type="text"
+              placeholder="e.g. John Doe"
+              class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label class="text-gray-700 mr-2 text-sm font-medium">Company:</label>
+            <input
+              v-model="filters.company"
+              type="text"
+              placeholder="e.g. ACME Corp"
+              class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label class="text-gray-700 mr-2 text-sm font-medium">Year:</label>
+            <select v-model="filters.year" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+              <option value="">All</option>
+              <option v-for="year in years" :key="year" :value="year">
+                {{ year }}
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label class="text-gray-700 mr-2 text-sm font-medium">Status:</label>
+            <select v-model="filters.status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+              <option value="">All</option>
+              <option>Pending</option>
+              <option>Approved</option>
+              <option>Rejected</option>
+            </select>
+          </div>
         </div>
 
-        <div>
-          <label class="text-gray-700 mr-2">Company:</label>
-          <input
-            v-model="filters.company"
-            type="text"
-            placeholder="e.g. ACME Corp"
-            class="border rounded px-2 py-1"
-          />
-        </div>
-
-        <div>
-          <label class="text-gray-700 mr-2">Year:</label>
-          <select v-model="filters.year" class="border rounded px-2 py-1">
-            <option value="">All</option>
-            <option v-for="year in years" :key="year" :value="year">
-              {{ year }}
-            </option>
-          </select>
-        </div>
-
-        <div>
-          <label class="text-gray-700 mr-2">Status:</label>
-          <select v-model="filters.status" class="border rounded px-2 py-1">
-            <option value="">All</option>
-            <option>Pending</option>
-            <option>Approved</option>
-            <option>Rejected</option>
-          </select>
-        </div>
+        <button
+          @click="exportReport"
+          class="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Export Report
+        </button>
       </div>
 
-      <button
-        @click="exportReport"
-        class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-      >
-        Export Report
-      </button>
+      <!-- 🔹 Таблица -->
+      <div class="bg-white shadow-lg rounded-xl overflow-hidden">
+        <table class="min-w-full">
+          <thead>
+            <tr class="bg-indigo-50">
+              <th class="py-3 px-6 text-left text-sm font-semibold text-indigo-900">Student</th>
+              <th class="py-3 px-6 text-left text-sm font-semibold text-indigo-900">Company</th>
+              <th class="py-3 px-6 text-left text-sm font-semibold text-indigo-900">Year</th>
+              <th class="py-3 px-6 text-left text-sm font-semibold text-indigo-900">Status</th>
+              <th class="py-3 px-6 text-left text-sm font-semibold text-indigo-900">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <tr
+              v-for="internship in filteredInternships"
+              :key="internship.id"
+              class="hover:bg-gray-50 transition-colors duration-150"
+            >
+              <td class="py-4 px-6 text-sm text-gray-900">{{ internship.student }}</td>
+              <td class="py-4 px-6 text-sm text-gray-700">{{ internship.company }}</td>
+              <td class="py-4 px-6 text-sm text-gray-700">{{ internship.year }}</td>
+              <td class="py-4 px-6">
+                <span
+                  class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                  :class="{
+                    'bg-yellow-100 text-yellow-800': internship.status === 'Pending',
+                    'bg-green-100 text-green-800': internship.status === 'Approved',
+                    'bg-red-100 text-red-800': internship.status === 'Rejected'
+                  }"
+                >
+                  {{ internship.status }}
+                </span>
+              </td>
+              <td class="py-4 px-6">
+                <div class="flex gap-2">
+                  <button
+                    class="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium"
+                    @click="updateStatus(internship.id, 'Approved')"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Approve
+                  </button>
+                  <button
+                    class="flex items-center gap-1 bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition-colors duration-200 text-sm font-medium"
+                    @click="updateStatus(internship.id, 'Rejected')"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Reject
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-
-    <!-- 🔹 Таблица -->
-    <table class="min-w-full bg-white shadow rounded overflow-hidden">
-      <thead>
-        <tr class="bg-indigo-50">
-          <th class="py-2 px-4 text-left">Student</th>
-          <th class="py-2 px-4 text-left">Company</th>
-          <th class="py-2 px-4 text-left">Year</th>
-          <th class="py-2 px-4 text-left">Status</th>
-          <th class="py-2 px-4 text-left">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="internship in filteredInternships"
-          :key="internship.id"
-          class="border-t hover:bg-gray-50 transition"
-        >
-          <td class="py-2 px-4">{{ internship.student }}</td>
-          <td class="py-2 px-4">{{ internship.company }}</td>
-          <td class="py-2 px-4">{{ internship.year }}</td>
-          <td class="py-2 px-4">
-            <span
-              class="px-3 py-1 rounded-full text-sm font-medium"
-              :class="{
-                'bg-yellow-100 text-yellow-700': internship.status === 'Pending',
-                'bg-green-100 text-green-700': internship.status === 'Approved',
-                'bg-red-100 text-red-700': internship.status === 'Rejected'
-              }"
-            >
-              {{ internship.status }}
-            </span>
-          </td>
-          <td class="py-2 px-4">
-            <button
-              class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 mr-2"
-              @click="updateStatus(internship.id, 'Approved')"
-            >
-              Approve
-            </button>
-            <button
-              class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-              @click="updateStatus(internship.id, 'Rejected')"
-            >
-              Reject
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
   </div>
 </template>
 
@@ -197,4 +231,7 @@ const exportReport = () => {
   console.log('✅ CSV exported:', filename)
 }
 
+const goToCompanies = () => {
+  router.push("/guarantor/companies")
+}
 </script>
