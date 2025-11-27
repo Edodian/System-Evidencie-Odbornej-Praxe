@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sk.ukf.sep.dto.OrganizationRegistrationDTO;
+import sk.ukf.sep.entity.Organization;
 import sk.ukf.sep.service.OrganizationService;
 
 
@@ -17,7 +18,7 @@ public class OrganizationController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerOrganization(@RequestBody OrganizationRegistrationDTO dto) {
-        organizationService.registerOrganization(dto);
+        Organization o = organizationService.registerOrganization(dto);
         return ResponseEntity.ok("Organization registered. Awaiting verification.");
     }
 
