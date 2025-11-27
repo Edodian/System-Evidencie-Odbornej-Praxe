@@ -24,8 +24,10 @@ public class InternshipService {
 
     public Internship registerInternship(InternshipDTO dto) {
 
-        User u = userRepository.findById((Integer) dto.userId).orElseThrow();
-        Organization o = organizationRepository.findById((long) dto.organizationId).orElseThrow();
+        User u = userRepository.findById(dto.userId)
+                .orElseThrow(() -> new RuntimeException("User with ID " + dto.userId + " not found"));
+        Organization o = organizationRepository.findById((long) dto.organizationId)
+                .orElseThrow(() -> new RuntimeException("Organization with ID " + dto.organizationId + " not found"));
 
         Internship internship = Internship.builder()
                 .user(u)
@@ -41,8 +43,10 @@ public class InternshipService {
 
     public void changeStatus(InternshipDTO dto) {
         Internship i = internshipRepository.getReferenceById((long) dto.id);
-        if (statuses.contains(dto.status)) i.setStatus(dto.status);
-        else throw new IllegalArgumentException("Invalid status");
+        if (statuses.contains(dto.status))
+            i.setStatus(dto.status);
+        else
+            throw new IllegalArgumentException("Invalid status");
         internshipRepository.save(i);
     }
 }

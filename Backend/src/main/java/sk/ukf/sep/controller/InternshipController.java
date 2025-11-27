@@ -16,13 +16,13 @@ public class InternshipController {
     private final InternshipService internshipService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerInternship(InternshipDTO dto) {
+    public ResponseEntity<?> registerInternship(@RequestBody InternshipDTO dto) {
         internshipService.registerInternship(dto);
         return ResponseEntity.ok("Internship registered successfully.");
     }
 
     @PostMapping("/change_status")
-    public ResponseEntity<?> changeInternshipStatus(InternshipDTO dto) {
+    public ResponseEntity<?> changeInternshipStatus(@RequestBody InternshipDTO dto) {
         internshipService.changeStatus(dto);
         return ResponseEntity.ok("Internship status changed successfully.");
     }
