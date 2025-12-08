@@ -27,4 +27,10 @@ public class InternshipController {
         return ResponseEntity.ok("Internship status changed successfully.");
     }
 
+    @GetMapping("/show")
+    public ResponseEntity<?> showInternships() {
+        return ResponseEntity.ok(internshipService.getAllInternships());
+    }
+
+
 }

@@ -152,6 +152,34 @@
 </template>
 
 <script setup>
+
+import { ref, computed, onMounted } from 'vue'
+import { getAllInternships, changeInternshipStatus } from '@/api/internships'
+
+// Список стажировок теперь с бекенда
+const internships = ref([])
+
+// Загружаем стажировки с сервера
+const loadInternships = async () => {
+  try {
+    internships.value = await getAllInternships()
+  } catch (e) {
+    console.error('Failed to fetch internships', e)
+  }
+}
+
+onMounted(loadInternships)
+
+// Обновление статуса через бэк
+const updateStatus = async (id, newStatus) => {
+  try {
+    await changeInternshipStatus(id, newStatus)
+    await loadInternships() // перезагружаем данные
+  } catch (e) {
+    console.error('Failed to update status', e)
+  }
+}
+
 import { useRouter } from 'vue-router'
 const router = useRouter()
 
@@ -162,14 +190,6 @@ const logout = () => {
 }
 
 import { ref, computed } from 'vue'
-
-// 📌 Список стажировок (пока локально)
-const internships = ref([
-  { id: 1, student: 'John Doe', company: 'ACME Corp', year: 2025, status: 'Pending' },
-  { id: 2, student: 'Jane Smith', company: 'DataMinds', year: 2025, status: 'Approved' },
-  { id: 3, student: 'Tom Brown', company: 'InnovateX', year: 2024, status: 'Rejected' },
-  { id: 4, student: 'Emily Davis', company: 'TechCorp', year: 2025, status: 'Pending' }
-])
 
 // 📌 Фильтры
 const filters = ref({
