@@ -71,7 +71,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from '../api.js'
+import axios from '../api.js'          // uses our configured instance
 
 const router = useRouter()
 const email = ref('')
@@ -93,30 +93,35 @@ const login = async () => {
   try {
     const res = await axios.post(
       '/api/student/login',
-      { email: email.value, password: password.value },
-      { withCredentials: true }
+      { email: email.value, password: password.value }
     )
 
-    // === Успешный логин ===
+ 
     const data = res.data
+
+    // access token
+    const token = data.access_token
+    if (token) {
+      localStorage.setItem('token', token)
+    }
+   
     localStorage.setItem('email', email.value)
     localStorage.setItem('mustChangePwd', 'false')
-    localStorage.setItem('role', 'student')
-    localStorage.setItem('token', 'session') // пока без JWT
+    localStorage.setItem('role', 'student') 
 
     router.push('/dashboard/student')
   } catch (e) {
     console.error('Login error:', e)
 
     const status = e.response?.status
-  const backendStatus = e.response?.data?.status
+    const backendStatus = e.response?.data?.status
 
-  if (status === 403 && backendStatus === 'PASSWORD_CREATION_REQUIRED') {
-    localStorage.setItem('email', email.value)
-    error.value = 'You must create your password using temporary code first.'
-    router.push('/enter-temp-password')
-    return
-  }
+    if (status === 403 && backendStatus === 'PASSWORD_CREATION_REQUIRED') {
+      localStorage.setItem('email', email.value)
+      error.value = 'You must create your password using temporary code first.'
+      router.push('/enter-temp-password')
+      return
+    }
 
     if (status === 401) {
       error.value = 'Invalid email or password.'
@@ -129,3 +134,4 @@ const login = async () => {
   }
 }
 </script>
+

@@ -8,6 +8,7 @@ import RegisterCompany from '@/views/RegisterCompany.vue'
 import DashboardStudent from '@/views/DashboardStudent.vue'
 import DashboardCompany from '@/views/DashboardCompany.vue'
 import DashboardGuarantor from '@/views/DashboardGuarantor.vue'
+import axios from '../api.js'
 
 // === Routes ===
 const routes = [
@@ -52,30 +53,28 @@ export const router = createRouter({
 
 // === Navigation Guards ===
 router.beforeEach((to, from, next) => {
-  // 🚧 === ВРЕМЕННОЕ РЕШЕНИЕ, ПОТОМ ПОДМЕНИМ НА БЭК ===
-  // Когда будет бекенд — заменим это на реальную JWT-проверку (через API).
-  const token = localStorage.getItem('token')  // <-- заменить на проверку валидности токена через сервер
-  const role = localStorage.getItem('role')    // <-- заменить на роль из backend payload / user API
+  const token = localStorage.getItem('token')
+  const role = localStorage.getItem('role')
   const mustChangePwd = localStorage.getItem('mustChangePwd') === 'true'
   
   if (mustChangePwd && to.path !== '/change-password') {
     return next('/change-password')
   }
-  // === Проверка приватных роутов ===
+
   if (to.meta.requiresAuth) {
     if (!token) {
-      // ❌ Нет токена — перенаправляем на логин
+      return next('/login')
+    }
+    if (!role) {
+      localStorage.clear()
       return next('/login')
     }
 
-    // 🔒 Проверяем роль
     if (to.meta.role && to.meta.role !== role) {
-      // ❌ Не та роль — отправляем на главную
       return next('/')
     }
   }
 
-  // 🚫 Если пользователь уже вошёл — не пускаем на логин/регистрацию
   if (
     (to.path === '/login' || to.path.startsWith('/register')) &&
     token
@@ -85,5 +84,6 @@ router.beforeEach((to, from, next) => {
 
   next()
 })
+
 
 export default router

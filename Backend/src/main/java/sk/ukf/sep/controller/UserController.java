@@ -1,15 +1,20 @@
 package sk.ukf.sep.controller;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.web.bind.annotation.*;
 import sk.ukf.sep.entity.User;
 import sk.ukf.sep.repository.UserRepository;
 import sk.ukf.sep.service.EmailService;
 import sk.ukf.sep.util.PasswordUtil;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -22,7 +27,12 @@ public class UserController {
     private final UserRepository repository;
     private final EmailService emailService;
 
-    // functions
+
+    private final JwtEncoder jwtEncoder;
+
+    // token lifetime defined in application yaml
+    @Value("${jwt.expires-in-seconds:3600}")
+    private long jwtExpiresInSeconds;
 
     private boolean hasFinalPassword(User u) {
         return u.getPwd() != null && !u.getPwd().isBlank();
@@ -45,8 +55,6 @@ public class UserController {
         return !updatedAt.isBefore(now.minusMinutes(5));
     }
 
-    // registration
-
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> registerStudent(@RequestBody User student) {
         if (student == null || student.getEmail() == null) {
@@ -59,7 +67,7 @@ public class UserController {
                     .body(Map.of("error", "Only student email addresses ending with @student.ukf.sk are allowed."));
         }
 
-        student.setPwd(""); //nulls the const pwd
+        student.setPwd("");
 
         User saved = repository.save(student);
 
@@ -81,20 +89,27 @@ public class UserController {
                 ));
     }
 
-    // login
-
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> req, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> req) {
         String email = req.get("email");
         String password = req.get("password");
 
+        System.out.println("DEBUG /login email='" + email + "', password='" + password + "'");
+
         User u = repository.findByEmail(email);
+        System.out.println("DEBUG user from DB = " + u);
+
         if (u == null) {
+            System.out.println("DEBUG -> user not found, returning 401");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid email or password."));
         }
 
-        if (requiresPasswordCreation(u)) {// no pwd was created but user tries to login
+        System.out.println("DEBUG DB pwd='" + u.getPwd() + "', equals? " + u.getPwd().equals(password)
+                + ", hasFinalPassword=" + hasFinalPassword(u));
+
+        if (requiresPasswordCreation(u)) {
+            System.out.println("DEBUG requiresPasswordCreation=true, returning 403");
             String newTemp = PasswordUtil.generate(8);
             u.setTempPwd(newTemp);
             repository.save(u);
@@ -117,49 +132,70 @@ public class UserController {
                     ));
         }
 
-        // regular login
+        //  bcrypt
+        // if (!hasFinalPassword(u) || !passwordEncoder.matches(password, u.getPwd())) {
         if (!hasFinalPassword(u) || !u.getPwd().equals(password)) {
+            System.out.println("DEBUG password mismatch or no final pwd, returning 401");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid email or password."));
         }
 
-        // tempPwd cleaning, just in case
+        // cleaning temppwd just in case
         if (hasTempPassword(u)) {
             u.setTempPwd("");
             repository.save(u);
         }
 
-        session.setAttribute("userId", u.getId());
+        Instant now = Instant.now();
+        Instant expiry = now.plusSeconds(jwtExpiresInSeconds);
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("sep")
+                .issuedAt(now)
+                .expiresAt(expiry)
+                .subject(u.getEmail())
+                .claim("uid", u.getId())
+                .claim("role", u.getRole())
+                .build();
+
+        // tell encoder we use HS256
+        JwsHeader jwsHeader = JwsHeader.with(MacAlgorithm.HS256).build();
+
+        JwtEncoderParameters params = JwtEncoderParameters.from(jwsHeader, claims);
+
+        String token = jwtEncoder.encode(params).getTokenValue();
 
         return ResponseEntity.ok(Map.of(
-                "status", "OK",
-                "message", "Login successful. Session started."
+                "access_token", token,
+                "token_type", "Bearer",
+                "expires_in", jwtExpiresInSeconds
         ));
     }
 
+
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, Object>> logout(HttpSession session) {
-        session.invalidate();
-        return ResponseEntity.ok(Map.of("message", "Logged out successfully."));
+    public ResponseEntity<Map<String, Object>> logout() {
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully (token discarded on client)."));
     }
 
-
     @GetMapping("/profile")
-    public ResponseEntity<Map<String, Object>> getProfile(HttpSession session) {
-        Integer userId = (Integer) session.getAttribute("userId");
-
-        if (userId == null) {
+    public ResponseEntity<Map<String, Object>> getProfile(
+            @AuthenticationPrincipal Jwt jwt // get user info from JWT
+    ) {
+        if (jwt == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "You must be logged in."));
         }
 
-        User u = repository.findById(userId).orElse(null);
+        String email = jwt.getSubject(); // subject set in login() when issuing token
+
+        User u = repository.findByEmail(email);
         if (u == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "User not found."));
         }
 
-        // block access if for some reason pwd does not exist
+        // block access if pwd does not exist
         if (requiresPasswordCreation(u)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "Create your password first using the temporary code sent to your email."));
@@ -208,19 +244,35 @@ public class UserController {
     }
 
     @PostMapping("/change-password")
-    public ResponseEntity<Map<String, Object>> changePassword(@RequestBody Map<String, String> req,
-                                                              HttpSession session) {
-        String email = req.get("email");
+    public ResponseEntity<Map<String, Object>> changePassword(
+            @RequestBody Map<String, String> req,
+            @AuthenticationPrincipal Jwt jwt // use authenticated user from JWT
+    ) {
+        if (jwt == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "You must be logged in."));
+        }
+
         String oldPassword = req.get("oldPassword");
         String newPassword = req.get("newPassword");
 
+        if (oldPassword == null || newPassword == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Missing required fields."));
+        }
+
+        String email = jwt.getSubject(); // ignore email from body; use token subject
         User u = repository.findByEmail(email);
-        // проверяем, что пользователь есть и у него есть финальный пароль
+
+        // bcrypt
+        // if (u == null || !hasFinalPassword(u) || !passwordEncoder.matches(oldPassword, u.getPwd())) {
         if (u == null || !hasFinalPassword(u) || !u.getPwd().equals(oldPassword)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid credentials."));
         }
 
+        // bcrypt
+        // u.setPwd(passwordEncoder.encode(newPassword));
         u.setPwd(newPassword);
 
         //cleaning temppwd just in case
@@ -230,18 +282,12 @@ public class UserController {
 
         repository.save(u);
 
-        session.setAttribute("userId", u.getId());
-
         return ResponseEntity.ok(Map.of(
                 "status", "PASSWORD_CHANGED",
-                "message", "Password successfully changed. You can now log in normally."
+                "message", "Password successfully changed."
         ));
     }
-
-
-    // =================== CREATE PASSWORD (единственное место, где меняется pwd) ===================
-
-    /**
+     /**
      * json body:
      * - email - realise autofill via vue
      * - tempPassword - should be no older than 5 minutes, realise autofill via vue
@@ -249,8 +295,9 @@ public class UserController {
      * - confirmPassword
      */
     @PostMapping("/create-password")
-    public ResponseEntity<Map<String, Object>> createPassword(@RequestBody Map<String, String> req,
-                                                              HttpSession session) {
+    public ResponseEntity<Map<String, Object>> createPassword(
+            @RequestBody Map<String, String> req
+    ) {
         String email = req.get("email");
         String tempPassword = req.get("tempPassword");
         String newPassword = req.get("newPassword");
@@ -282,27 +329,25 @@ public class UserController {
                     .body(Map.of("error", "No active temporary password for this account."));
         }
 
-        // 5 minutes pass check
-//        if (!isTempPasswordStillValid(u)) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-//                    .body(Map.of(
-//                            "status", "TEMPORARY_PASSWORD_EXPIRED",
-//                            "message", "Temporary password has expired. Please request a new reset code."
-//                    ));
-//        }
+        // 5 minutes pass check (still optional)
+        // if (!isTempPasswordStillValid(u)) {
+        //     return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        //             .body(Map.of(
+        //                     "status", "TEMPORARY_PASSWORD_EXPIRED",
+        //                     "message", "Temporary password has expired. Please request a new reset code."
+        //             ));
+        // }
 
         if (!u.getTempPwd().equals(tempPassword)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid temporary password."));
         }
 
-
-        u.setPwd(newPassword); // actual pwd set
-        u.setTempPwd("");  // temp pwd clean
+        // bcrypt
+        // u.setPwd(passwordEncoder.encode(newPassword)); // actual pwd set (hashed)
+        u.setPwd(newPassword); // actual pwd set (plain, for now)
+        u.setTempPwd("");      // temp pwd clean
         repository.save(u);
-
-        // autologin
-        //session.setAttribute("userId", u.getId());
 
         return ResponseEntity.ok(Map.of(
                 "status", "PASSWORD_CREATED",
@@ -310,6 +355,7 @@ public class UserController {
                 "email", u.getEmail()
         ));
     }
+
     @PostMapping("/verify-temp-password")
     public ResponseEntity<Map<String, Object>> verifyTempPassword(@RequestBody Map<String, String> req) {
 
@@ -350,5 +396,4 @@ public class UserController {
                 "message", "Temporary password is valid."
         ));
     }
-
 }

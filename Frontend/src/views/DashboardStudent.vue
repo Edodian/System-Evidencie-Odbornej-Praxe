@@ -108,7 +108,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from '../api.js'
 
 const router = useRouter()
 const studentName = ref('')
@@ -142,7 +142,8 @@ const internships = ref([
 // === Fetch student info from backend ===
 const fetchProfile = async () => {
   try {
-    const res = await axios.get('/api/student/profile', { withCredentials: true })
+
+    const res = await axios.get('/api/student/profile')
     const data = res.data
     studentName.value = `${data.name} ${data.surname}`
     localStorage.setItem('email', data.email)
@@ -150,6 +151,8 @@ const fetchProfile = async () => {
   } catch (err) {
     console.error('Profile fetch error:', err)
     if (err.response?.status === 401 || err.response?.status === 403) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('role')
       router.push('/login')
     }
   }
@@ -161,7 +164,8 @@ const viewDetails = (id) => router.push(`/internship/${id}`)
 
 const logout = async () => {
   try {
-    await axios.post('/api/student/logout', {}, { withCredentials: true })
+
+    await axios.post('/api/student/logout', {})
   } catch (_) {}
   localStorage.clear()
   router.push('/login')
@@ -183,3 +187,5 @@ const uploadFile = (type, internshipId) => {
   input.click()
 }
 </script>
+
+
