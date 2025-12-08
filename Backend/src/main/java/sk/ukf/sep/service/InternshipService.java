@@ -22,36 +22,57 @@ public class InternshipService {
     private final UserRepository userRepository;
     private final OrganizationRepository organizationRepository;
 
-    private final List statuses = List.of("Registered", "Accepted", "Confirmed", "Defended", "Rejected");
+    private final List<String> statuses =
+            List.of("Registered", "Accepted", "Confirmed", "Defended", "Rejected");
 
     public Internship registerInternship(InternshipDTO dto) {
 
-        User u = userRepository.findById(dto.userId)
-                .orElseThrow(() -> new RuntimeException("User with ID " + dto.userId + " not found"));
-        Organization o = organizationRepository.findById((long) dto.organizationId)
-                .orElseThrow(() -> new RuntimeException("Organization with ID " + dto.organizationId + " not found"));
+        User u = userRepository.findById(dto.getUserId())  // userId теперь Integer
+                .orElseThrow(() ->
+                        new RuntimeException("User with ID " + dto.getUserId() + " not found"));
+
+        Organization o = organizationRepository.findById(dto.getOrganizationId())  // organizationId Long
+                .orElseThrow(() ->
+                        new RuntimeException("Organization with ID " + dto.getOrganizationId() + " not found"));
 
         Internship internship = Internship.builder()
                 .user(u)
                 .organization(o)
-                .beginDate(dto.beginDate)
-                .endDate(dto.endDate)
-                .note(dto.note)
+                .beginDate(dto.getBeginDate())
+                .endDate(dto.getEndDate())
+                .note(dto.getNote())
                 .status("Registered")
+                .semester(dto.getSemester())
                 .build();
 
         return internshipRepository.save(internship);
     }
 
+
     public void changeStatus(InternshipDTO dto) {
-        Internship i = internshipRepository.getReferenceById((long) dto.id);
-        if (statuses.contains(dto.status))
-            i.setStatus(dto.status);
-        else
+        Internship i = internshipRepository.getReferenceById(dto.getId());
+        if (!statuses.contains(dto.getStatus())) {
             throw new IllegalArgumentException("Invalid status");
+        }
+        i.setStatus(dto.getStatus());
         internshipRepository.save(i);
     }
 
+    public List<InternshipDTO> getAllInternships() {
+        return internshipRepository.findAll().stream()
+                .map(i -> {
+                    InternshipDTO dto = new InternshipDTO();
+                    dto.setId(i.getId());
+                    dto.setUserId(i.getUser().getId());
+                    dto.setOrganizationId(i.getOrganization().getId());
+                    dto.setBeginDate(i.getBeginDate());
+                    dto.setEndDate(i.getEndDate());
+                    dto.setNote(i.getNote());
+                    dto.setStatus(i.getStatus());
+                    dto.setSemester(i.getSemester());
+                    return dto;
+                })
+                .toList();
     private InternshipDTO toDTO(Internship internship) {
         InternshipDTO dto = new InternshipDTO();
         dto.id = internship.getId();

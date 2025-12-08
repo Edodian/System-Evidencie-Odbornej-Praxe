@@ -1,14 +1,17 @@
 package sk.ukf.sep.dto;
 
+import lombok.Data;
 import java.time.LocalDate;
 
+@Data
 public class InternshipDTO {
-    public int id;
-    public int userId;
-    public int organizationId;
-    public LocalDate beginDate;
-    public LocalDate endDate;
-    public String note;
-    public String status;
+    private Long id;
+    private Integer userId;
+    private Long organizationId;
+    private LocalDate beginDate;
+    private LocalDate endDate;
+    private String note;
+    private String status;
     private String semester;
 }
+

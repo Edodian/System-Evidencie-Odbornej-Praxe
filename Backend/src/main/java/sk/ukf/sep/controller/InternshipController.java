@@ -29,6 +29,12 @@ public class InternshipController {
         return ResponseEntity.ok("Internship status changed successfully.");
     }
 
+    @GetMapping("/show")
+    public ResponseEntity<?> showInternships() {
+        return ResponseEntity.ok(internshipService.getAllInternships());
+    }
+
+
     @PostMapping("/show/id/{id}")
     public ResponseEntity<InternshipDTO> showInternshipById(@PathVariable int id) {
         Optional<InternshipDTO> internshipOpt = internshipService.findById(id);

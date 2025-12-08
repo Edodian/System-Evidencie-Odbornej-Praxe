@@ -152,6 +152,34 @@
 </template>
 
 <script setup>
+
+import { ref, computed, onMounted } from 'vue'
+import { getAllInternships, changeInternshipStatus } from '@/api/internships'
+
+// Список стажировок теперь с бекенда
+const internships = ref([])
+
+// Загружаем стажировки с сервера
+const loadInternships = async () => {
+  try {
+    internships.value = await getAllInternships()
+  } catch (e) {
+    console.error('Failed to fetch internships', e)
+  }
+}
+
+onMounted(loadInternships)
+
+// Обновление статуса через бэк
+const updateStatus = async (id, newStatus) => {
+  try {
+    await changeInternshipStatus(id, newStatus)
+    await loadInternships() // перезагружаем данные
+  } catch (e) {
+    console.error('Failed to update status', e)
+  }
+}
+
 import { useRouter } from 'vue-router'
 const router = useRouter()
 
