@@ -191,6 +191,14 @@ const logout = () => {
 
 import { ref, computed } from 'vue'
 
+// 📌 Список стажировок (пока локально)
+const internships = ref([
+  { id: 1, student: 'John Doe', company: 'ACME Corp', year: 2025, status: 'Pending' },
+  { id: 2, student: 'ХУЙ', company: 'DataMinds', year: 2025, status: 'Approved' },
+  { id: 3, student: 'Tom Brown', company: 'InnovateX', year: 2024, status: 'Rejected' },
+  { id: 4, student: 'Emily Davis', company: 'TechCorp', year: 2025, status: 'Pending' }
+])
+
 // 📌 Фильтры
 const filters = ref({
   student: '',
