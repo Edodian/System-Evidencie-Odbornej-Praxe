@@ -115,11 +115,24 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router"
 import axios from '../api/api.js'
-import { ref, onMounted } from 'vue'
+
+const router = useRouter()
 
 const organizations = ref([])
+
+const form = ref({
+  organizationId: "",
+  position: "",
+  semester: "",
+  startDate: "",
+  endDate: "",
+  description: ""
+})
+
+const submitted = ref(false)
 
 onMounted(async () => {
   try {
@@ -130,51 +143,31 @@ onMounted(async () => {
   }
 })
 
-const submitted = ref(false)
-
 const handleSubmit = async () => {
   console.log("Internship submitted:", form.value)
 
-  // имитация POST-запроса
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  console.log("POST request sent successfully!")
+  try {
+    await axios.post('/api/internship', {
+      organizationId: form.value.organizationId,
+      beginDate: form.value.startDate,
+      endDate: form.value.endDate,
+      note: form.value.description,
+      semester: form.value.semester,
+      position: form.value.position
+    })
 
-  // имитация скачивания PDF
-  const pdfBlob = new Blob(["Mock PDF content"], { type: "application/pdf" })
-  const pdfUrl = URL.createObjectURL(pdfBlob)
-  const link = document.createElement("a")
-  link.href = pdfUrl
-  link.download = "internship_confirmation.pdf"
-  link.click()
+    submitted.value = true
 
-  submitted.value = true
-
-  // через 2 секунды возвращаемся на дашборд
-  setTimeout(() => {
-    router.push("/dashboard/student")
-  }, 2000)
+    setTimeout(() => {
+      router.push("/dashboard/student")
+    }, 2000)
+  } catch (err) {
+    console.error("Failed to submit internship:", err)
+  }
 }
 
 const goBack = () => {
   router.back()
 }
-
-await axios.post('/api/internship', {
-  organizationId: form.value.organizationId,
-  beginDate: form.value.startDate,
-  endDate: form.value.endDate,
-  note: form.value.description,
-  semester: form.value.semester
-})
-
-
-const form = ref({
-  organizationId: "", // вместо company
-  position: "",
-  semester: "",
-  startDate: "",
-  endDate: "",
-  description: ""
-})
-
 </script>
+
