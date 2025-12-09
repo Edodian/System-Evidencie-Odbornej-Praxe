@@ -22,13 +22,16 @@
       <form @submit.prevent="handleSubmit" class="space-y-5">
         <!-- Company -->
         <div>
-          <label class="block text-gray-700 mb-2">Company Name</label>
-          <input
-            type="text"
-            v-model="form.company"
-            placeholder="Enter company name"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
-          />
+          <select
+  v-model="form.organizationId"
+  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+>
+  <option value="">Select company</option>
+  <option v-for="org in organizations" :key="org.id" :value="org.id">
+    {{ org.name }}
+  </option>
+</select>
+
         </div>
 
         <!-- Position -->
@@ -112,18 +115,19 @@
 </template>
 
 <script setup>
-import { ref } from "vue"
 import { useRouter } from "vue-router"
+import axios from '../api/api.js'
+import { ref, onMounted } from 'vue'
 
-const router = useRouter()
+const organizations = ref([])
 
-const form = ref({
-  company: "",
-  position: "",
-  semester: "",
-  startDate: "",
-  endDate: "",
-  description: ""
+onMounted(async () => {
+  try {
+    const res = await axios.get('/api/organization/all')
+    organizations.value = res.data
+  } catch (err) {
+    console.error('Failed to load organizations:', err)
+  }
 })
 
 const submitted = ref(false)
@@ -154,4 +158,14 @@ const handleSubmit = async () => {
 const goBack = () => {
   router.back()
 }
+
+const form = ref({
+  organizationId: "", // вместо company
+  position: "",
+  semester: "",
+  startDate: "",
+  endDate: "",
+  description: ""
+})
+
 </script>
