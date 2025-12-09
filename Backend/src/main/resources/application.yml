@@ -32,3 +32,6 @@ spring:
             same-site: none
             secure: false
 server.port: 8081
+jwt:
+  secret: "SdZAFZgN4QioK5Uns9cqcTTnxcxs3GcFkSikTDhWCHUYKjCyhUCVSpX956YbJz7u"
+  expires-in-seconds: 3600

@@ -121,7 +121,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from '../api.js'
 
 const router = useRouter()
 const studentName = ref('')
@@ -172,7 +172,8 @@ const fetchInternships = async (userId) => {
 
 const fetchProfile = async () => {
   try {
-    const res = await axios.get('/api/student/profile', { withCredentials: true })
+
+    const res = await axios.get('/api/student/profile')
     const data = res.data
     console.log('Student profile:', data)
 
@@ -190,6 +191,8 @@ const fetchProfile = async () => {
   } catch (err) {
     console.error('Profile fetch error:', err)
     if (err.response?.status === 401 || err.response?.status === 403) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('role')
       router.push('/login')
     }
   }
@@ -201,12 +204,34 @@ const goToChangePassword = () => {
 
 const logout = async () => {
   try {
+<<<<<<< HEAD
     await axios.post('/api/logout', {}, { withCredentials: true })
   } catch (e) {
     console.warn('logout error (ignored):', e)
   } finally {
     localStorage.clear()
     router.push('/login')
+=======
+
+    await axios.post('/api/student/logout', {})
+  } catch (_) {}
+  localStorage.clear()
+  router.push('/login')
+}
+
+const goToAddInternship = () => router.push('/internship/add')
+const goToChangePassword = () => router.push({ path: '/change-password', query: { from: 'student' } })
+
+// === Keep internship uploads unchanged ===
+const uploadFile = (type, internshipId) => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.pdf,.doc,.docx'
+  input.onchange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    alert(`${type === 'agreement' ? 'Agreement' : 'Report'} uploaded for internship #${internshipId}: ${file.name}`)
+>>>>>>> feature/tokenization
   }
 }
 
@@ -225,3 +250,5 @@ const uploadFile = (type, internshipId) => {
 
 onMounted(fetchProfile)
 </script>
+
+
