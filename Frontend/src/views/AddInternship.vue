@@ -22,13 +22,16 @@
       <form @submit.prevent="handleSubmit" class="space-y-5">
         <!-- Company -->
         <div>
-          <label class="block text-gray-700 mb-2">Company Name</label>
-          <input
-            type="text"
-            v-model="form.company"
-            placeholder="Enter company name"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
-          />
+          <select
+  v-model="form.organizationId"
+  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+>
+  <option value="">Select company</option>
+  <option v-for="org in organizations" :key="org.id" :value="org.id">
+    {{ org.name }}
+  </option>
+</select>
+
         </div>
 
         <!-- Position -->
@@ -112,13 +115,16 @@
 </template>
 
 <script setup>
-import { ref } from "vue"
+import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router"
+import axios from '../api/api.js'
 
 const router = useRouter()
 
+const organizations = ref([])
+
 const form = ref({
-  company: "",
+  organizationId: "",
   position: "",
   semester: "",
   startDate: "",
@@ -128,30 +134,40 @@ const form = ref({
 
 const submitted = ref(false)
 
+onMounted(async () => {
+  try {
+    const res = await axios.get('/api/organization/all')
+    organizations.value = res.data
+  } catch (err) {
+    console.error('Failed to load organizations:', err)
+  }
+})
+
 const handleSubmit = async () => {
   console.log("Internship submitted:", form.value)
 
-  // имитация POST-запроса
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  console.log("POST request sent successfully!")
+  try {
+    await axios.post('/api/internship', {
+      organizationId: form.value.organizationId,
+      beginDate: form.value.startDate,
+      endDate: form.value.endDate,
+      note: form.value.description,
+      semester: form.value.semester,
+      position: form.value.position
+    })
 
-  // имитация скачивания PDF
-  const pdfBlob = new Blob(["Mock PDF content"], { type: "application/pdf" })
-  const pdfUrl = URL.createObjectURL(pdfBlob)
-  const link = document.createElement("a")
-  link.href = pdfUrl
-  link.download = "internship_confirmation.pdf"
-  link.click()
+    submitted.value = true
 
-  submitted.value = true
-
-  // через 2 секунды возвращаемся на дашборд
-  setTimeout(() => {
-    router.push("/dashboard/student")
-  }, 2000)
+    setTimeout(() => {
+      router.push("/dashboard/student")
+    }, 2000)
+  } catch (err) {
+    console.error("Failed to submit internship:", err)
+  }
 }
 
 const goBack = () => {
   router.back()
 }
 </script>
+

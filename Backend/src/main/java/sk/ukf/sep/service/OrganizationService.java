@@ -5,6 +5,8 @@ import sk.ukf.sep.dto.OrganizationRegistrationDTO;
 import sk.ukf.sep.entity.Organization;
 import sk.ukf.sep.repository.OrganizationRepository;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class OrganizationService {
@@ -44,4 +46,9 @@ public class OrganizationService {
                 })
                 .orElse(false);
     }
+
+    public List<Organization> getAllOrganizations() {
+        return organizationRepository.findAll();
+    }
+
 }
