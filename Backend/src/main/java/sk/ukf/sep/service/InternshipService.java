@@ -12,7 +12,6 @@ import sk.ukf.sep.repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,22 +21,36 @@ public class InternshipService {
     private final UserRepository userRepository;
     private final OrganizationRepository organizationRepository;
 
-    private final List<String> statuses =
+    private static final List<String> STATUSES =
             List.of("Registered", "Accepted", "Confirmed", "Defended", "Rejected");
 
-    public Internship registerInternship(InternshipDTO dto) {
+    // -------------------- CREATE --------------------
 
-        User u = userRepository.findById(dto.getUserId())  // userId теперь Integer
+    public Internship registerInternship(InternshipDTO dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("InternshipDTO must not be null");
+        }
+        if (dto.getUserId() == null) {
+            throw new IllegalArgumentException("userId must not be null");
+        }
+        if (dto.getOrganizationId() == null) {
+            throw new IllegalArgumentException("organizationId must not be null");
+        }
+
+        // User.id is Integer
+        User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() ->
                         new RuntimeException("User with ID " + dto.getUserId() + " not found"));
 
-        Organization o = organizationRepository.findById(dto.getOrganizationId())  // organizationId Long
+        // Assuming Organization.id is Long – adjust if it's Integer in your entity
+        Organization organization = organizationRepository
+                .findById(dto.getOrganizationId())
                 .orElseThrow(() ->
                         new RuntimeException("Organization with ID " + dto.getOrganizationId() + " not found"));
 
         Internship internship = Internship.builder()
-                .user(u)
-                .organization(o)
+                .user(user)
+                .organization(organization)
                 .beginDate(dto.getBeginDate())
                 .endDate(dto.getEndDate())
                 .note(dto.getNote())
@@ -48,46 +61,44 @@ public class InternshipService {
         return internshipRepository.save(internship);
     }
 
+    // -------------------- UPDATE STATUS --------------------
 
     public void changeStatus(InternshipDTO dto) {
-        Internship i = internshipRepository.getReferenceById(dto.getId());
-        if (!statuses.contains(dto.getStatus())) {
-            throw new IllegalArgumentException("Invalid status");
+        if (dto.getId() == null) {
+            throw new IllegalArgumentException("id must not be null");
         }
+        if (dto.getStatus() == null) {
+            throw new IllegalArgumentException("status must not be null");
+        }
+        if (!STATUSES.contains(dto.getStatus())) {
+            throw new IllegalArgumentException("Invalid status: " + dto.getStatus());
+        }
+
+        Internship i = internshipRepository.getReferenceById(dto.getId());
         i.setStatus(dto.getStatus());
         internshipRepository.save(i);
     }
 
-    public List<InternshipDTO> getAllInternships() {
-        return internshipRepository.findAll().stream()
-                .map(i -> {
-                    InternshipDTO dto = new InternshipDTO();
-                    dto.setId(i.getId());
-                    dto.setUserId(i.getUser().getId());
-                    dto.setOrganizationId(i.getOrganization().getId());
-                    dto.setBeginDate(i.getBeginDate());
-                    dto.setEndDate(i.getEndDate());
-                    dto.setNote(i.getNote());
-                    dto.setStatus(i.getStatus());
-                    dto.setSemester(i.getSemester());
-                    return dto;
-                })
-                .toList();
+    // -------------------- MAPPING --------------------
+
     private InternshipDTO toDTO(Internship internship) {
         InternshipDTO dto = new InternshipDTO();
-        dto.id = internship.getId();
-        dto.userId = internship.getUser().getId();
-        dto.organizationId = internship.getOrganization().getId().intValue();
-        dto.beginDate = internship.getBeginDate();
-        dto.endDate = internship.getEndDate();
-        dto.note = internship.getNote();
-        dto.status = internship.getStatus();
-
+        dto.setId(internship.getId());
+        dto.setUserId(internship.getUser().getId());
+        // If Organization.id is Integer, simply: dto.setOrganizationId(internship.getOrganization().getId());
+        dto.setOrganizationId(internship.getOrganization().getId().intValue());
+        dto.setBeginDate(internship.getBeginDate());
+        dto.setEndDate(internship.getEndDate());
+        dto.setNote(internship.getNote());
+        dto.setStatus(internship.getStatus());
+        dto.setSemester(internship.getSemester());
         return dto;
     }
 
+
     public Optional<InternshipDTO> findById(int id) {
-        return internshipRepository.findById((long) id)
+        // Internship.id is Integer, repository is <Internship, Integer>
+        return internshipRepository.findById(id)
                 .map(this::toDTO);
     }
 
@@ -95,20 +106,21 @@ public class InternshipService {
         return internshipRepository.findByUser_Id(userId)
                 .stream()
                 .map(this::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public List<InternshipDTO> findByOrganizationId(int organizationId) {
-        return internshipRepository.findByOrganization_Id((long) organizationId)
+        return internshipRepository.findByOrganization_Id(organizationId)
                 .stream()
                 .map(this::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public List<InternshipDTO> findAll() {
         return internshipRepository.findAll()
                 .stream()
                 .map(this::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
+
 }

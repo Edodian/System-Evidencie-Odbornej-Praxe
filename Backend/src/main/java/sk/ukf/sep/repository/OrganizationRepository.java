@@ -6,6 +6,6 @@ import sk.ukf.sep.entity.Organization;
 
 import java.util.Optional;
 
-public interface OrganizationRepository extends JpaRepository<Organization, Long> {
+public interface OrganizationRepository extends JpaRepository<Organization, Integer> {
     Optional<Organization> findByIco(String ico);
 }

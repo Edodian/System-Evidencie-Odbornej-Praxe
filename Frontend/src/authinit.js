@@ -1,5 +1,5 @@
 
-import axios from './api' 
+import axios from './api/api' 
 //autoauth if the token is still valid 
 export async function initAuth() {
   const token = localStorage.getItem('token')

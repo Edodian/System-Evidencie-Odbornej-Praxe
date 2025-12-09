@@ -5,9 +5,9 @@ import java.time.LocalDate;
 
 @Data
 public class InternshipDTO {
-    private Long id;
+    private Integer id;
     private Integer userId;
-    private Long organizationId;
+    private Integer organizationId;
     private LocalDate beginDate;
     private LocalDate endDate;
     private String note;

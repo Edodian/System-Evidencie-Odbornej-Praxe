@@ -42,7 +42,9 @@
 
       <!-- Internships -->
       <div class="bg-white shadow-md rounded-2xl p-6">
-        <h3 class="text-xl font-semibold mb-4 text-gray-800">Your Internships</h3>
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">
+          Your Internships
+        </h3>
 
         <div v-if="loadingInternships" class="text-gray-500 text-sm mb-2">
           Loading internships...
@@ -51,7 +53,10 @@
           You don't have any internships yet.
         </div>
 
-        <table v-if="internships.length" class="w-full border-collapse text-left">
+        <table
+          v-if="internships.length"
+          class="w-full border-collapse text-left"
+        >
           <thead>
             <tr class="border-b bg-indigo-50 text-indigo-700">
               <th class="py-3 px-4">Company</th>
@@ -76,9 +81,19 @@
                 <span
                   class="px-3 py-1 rounded-full text-sm font-medium"
                   :class="{
-                    'bg-yellow-100 text-yellow-700': ['Pending', 'Registered'].includes(internship.status),
-                    'bg-green-100 text-green-700': ['Approved', 'Accepted', 'Confirmed', 'Defended'].includes(internship.status),
-                    'bg-red-100 text-red-700': ['Rejected'].includes(internship.status)
+                    'bg-yellow-100 text-yellow-700': [
+                      'Pending',
+                      'Registered',
+                    ].includes(internship.status),
+                    'bg-green-100 text-green-700': [
+                      'Approved',
+                      'Accepted',
+                      'Confirmed',
+                      'Defended',
+                    ].includes(internship.status),
+                    'bg-red-100 text-red-700': ['Rejected'].includes(
+                      internship.status
+                    ),
                   }"
                 >
                   {{ internship.status }}
@@ -121,9 +136,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from '../api.js'
+import axios from '../api/api.js'
 
 const router = useRouter()
+
 const studentName = ref('')
 const internships = ref([])
 const loadingInternships = ref(false)
@@ -134,45 +150,41 @@ const fetchInternships = async (userId) => {
     console.warn('fetchInternships: no userId')
     return
   }
+
   loadingInternships.value = true
   internshipsError.value = ''
+
   try {
     console.log('Backend link', userId)
 
-    const res = await axios.post(
-      '/api/internship/show/id/' + userId,
-      {},
-      { withCredentials: true }
-    )
+    const res = await axios.post(`/api/internship/show/user/${userId}`)
 
-    console.log('Response from /api/internship/show/id:', res.data)
+    console.log('Response from back /api/internship/show/user:', res.data)
     const data = res.data
 
-    const list = Array.isArray(data) ? data : (data ? [data] : [])
-
-    console.log('Internships list:', list)
+    const list = Array.isArray(data) ? data : data ? [data] : []
 
     internships.value = list.map((dto) => ({
       id: dto.id,
       company: dto.companyName || dto.organizationName || dto.company || 'N/A',
       position: dto.position || dto.role || '—',
-      startDate: dto.startDate,
+      startDate: dto.beginDate ?? dto.startDate,
       endDate: dto.endDate,
-      status: dto.status || 'Pending'
+      status: dto.status || 'Pending',
     }))
   } catch (err) {
     console.error('Failed to fetch internships:', err)
     internshipsError.value =
       err.response?.data?.message ||
-      `HTTP ${err.response?.status ?? '???'}`
+      `Failed to load internships (HTTP ${err.response?.status ?? '???'})`
   } finally {
     loadingInternships.value = false
   }
 }
 
+
 const fetchProfile = async () => {
   try {
-
     const res = await axios.get('/api/student/profile')
     const data = res.data
     console.log('Student profile:', data)
@@ -186,43 +198,40 @@ const fetchProfile = async () => {
       localStorage.setItem('userId', String(data.id))
       await fetchInternships(data.id)
     } else {
-      console.warn('no id field:', data)
+      console.warn('no id field in profile:', data)
     }
   } catch (err) {
     console.error('Profile fetch error:', err)
+
     if (err.response?.status === 401 || err.response?.status === 403) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('role')
+      localStorage.clear()
       router.push('/login')
     }
   }
 }
 
 const goToChangePassword = () => {
-  router.push('/change-password')
+  router.push({ path: '/change-password', query: { from: 'student' } })
 }
 
 const logout = async () => {
   try {
-<<<<<<< HEAD
-    await axios.post('/api/logout', {}, { withCredentials: true })
+    await axios.post('/api/student/logout', {})
   } catch (e) {
-    console.warn('logout error (ignored):', e)
+    console.warn('logout err:', e)
   } finally {
     localStorage.clear()
     router.push('/login')
-=======
-
-    await axios.post('/api/student/logout', {})
-  } catch (_) {}
-  localStorage.clear()
-  router.push('/login')
+  }
 }
 
-const goToAddInternship = () => router.push('/internship/add')
-const goToChangePassword = () => router.push({ path: '/change-password', query: { from: 'student' } })
+const goToAddInternship = () => {
+  router.push('/internship/add')
+}
 
-// === Keep internship uploads unchanged ===
+const viewDetails = (id) => {
+  router.push(`/internship/${id}`)
+}
 const uploadFile = (type, internshipId) => {
   const input = document.createElement('input')
   input.type = 'file'
@@ -230,25 +239,14 @@ const uploadFile = (type, internshipId) => {
   input.onchange = (e) => {
     const file = e.target.files[0]
     if (!file) return
-    alert(`${type === 'agreement' ? 'Agreement' : 'Report'} uploaded for internship #${internshipId}: ${file.name}`)
->>>>>>> feature/tokenization
+    alert(
+      `${
+        type === 'agreement' ? 'Agreement' : 'Report'
+      } uploaded for internship #${internshipId}: ${file.name}`
+    )
   }
-}
-
-const goToAddInternship = () => {
-  router.push('/internships/new')
-}
-
-const viewDetails = (id) => {
-  router.push(`/internships/${id}`)
-}
-
-const uploadFile = (type, internshipId) => {
- 
-  console.log('Upload file', type, 'for internship', internshipId)
+  input.click()
 }
 
 onMounted(fetchProfile)
 </script>
-
-

@@ -26,7 +26,7 @@ public class OrganizationService {
         return organizationRepository.save(organization);
     }
 
-    public boolean verifyOrganization(Long id) {
+    public boolean verifyOrganization(Integer id) {
         return organizationRepository.findById(id)
                 .map(org -> {
                     org.setVerified(true);
@@ -35,7 +35,7 @@ public class OrganizationService {
                 })
                 .orElse(false);
     }
-    public boolean unverifyOrganization(Long id) {
+    public boolean unverifyOrganization(Integer id) {
         return organizationRepository.findById(id)
                 .map(org -> {
                     org.setVerified(false);

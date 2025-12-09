@@ -1,10 +1,13 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import { router } from './router'
 import './style.css'
-import { initAuth } from './authinit'
-createApp(App).use(router).mount('#app')
+import router from './router'
+import { initAuth } from './authinit' 
+const app = createApp(App)
+app.use(router)
 
-initAuth().finally(() => {
-  app.mount('#app')
-})
+initAuth()
+  .catch(err => console.error('initAuth error', err))
+  .finally(() => {
+    app.mount('#app')  
+  })

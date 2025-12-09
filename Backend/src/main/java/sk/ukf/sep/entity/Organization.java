@@ -18,7 +18,7 @@ public class Organization {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "organization_id")
-    private Long id;
+    private Integer id;
 
     @Column(name = "title", nullable = false, length = 64)
     private String title;

@@ -8,7 +8,7 @@ import RegisterCompany from '@/views/RegisterCompany.vue'
 import DashboardStudent from '@/views/DashboardStudent.vue'
 import DashboardCompany from '@/views/DashboardCompany.vue'
 import DashboardGuarantor from '@/views/DashboardGuarantor.vue'
-import axios from '../api.js'
+import axios from '../api/api.js'
 
 // === Routes ===
 const routes = [

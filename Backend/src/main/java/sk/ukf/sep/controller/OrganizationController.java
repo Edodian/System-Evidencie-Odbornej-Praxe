@@ -23,14 +23,14 @@ public class OrganizationController {
     }
 
     @GetMapping("/verify/{id}")
-    public ResponseEntity<?> verifyOrganization(@PathVariable Long id) {
+    public ResponseEntity<?> verifyOrganization(@PathVariable Integer id) {
         boolean verified = organizationService.verifyOrganization(id);
         return verified
                 ? ResponseEntity.ok("Organization verified successfully.")
                 : ResponseEntity.badRequest().body("Organization not found.");
     }
     @GetMapping("/unverify/{id}")
-    public ResponseEntity<?> unverifyOrganization(@PathVariable Long id) {
+    public ResponseEntity<?> unverifyOrganization(@PathVariable Integer id) {
         boolean unverified = organizationService.unverifyOrganization(id);
         return unverified
                 ? ResponseEntity.ok("Organization unverified successfully.")

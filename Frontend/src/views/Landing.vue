@@ -1,24 +1,20 @@
-<script setup>
-import { UserPlus, LogIn, FileEdit, Upload, ArrowRight } from "lucide-vue-next"
-</script>
-
 <template>
   <div class="bg-gray-50 text-gray-800">
     <!-- NAVBAR -->
     <nav class="bg-white shadow-sm fixed w-full top-0 left-0 z-10">
-  <div class="max-w-7xl mx-auto flex justify-between items-center py-3 px-6">
-    <h1 class="text-2xl font-bold text-indigo-600">Internship Portal</h1>
-    <div class="space-x-4">
-      <!-- 🔹 Кнопка регистрации -->
-      <router-link
-        to="/login"
-        class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 font-medium"
-      >
-        Login
-      </router-link>
-    </div>
-  </div>
-</nav>
+      <div class="max-w-7xl mx-auto flex justify-between items-center py-3 px-6">
+        <h1 class="text-2xl font-bold text-indigo-600">Internship Portal</h1>
+        <div class="space-x-4">
+          <!-- Login / Go to profile -->
+          <router-link
+            :to="hasValidToken ? profileRoute : '/login'"
+            class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 font-medium inline-flex items-center justify-center"
+          >
+            {{ hasValidToken ? "Go to profile" : "Login" }}
+          </router-link>
+        </div>
+      </div>
+    </nav>
 
     <!-- HERO SECTION -->
     <section class="pt-24 pb-16 bg-gradient-to-r from-indigo-50 to-white text-center">
@@ -31,12 +27,18 @@ import { UserPlus, LogIn, FileEdit, Upload, ArrowRight } from "lucide-vue-next"
           document exchange, and progress tracking.
         </p>
         <div class="flex justify-center space-x-4">
-          <router-link to="/register/student" class="bg-indigo-600 text-white px-6 py-3 rounded-lg shadow hover:bg-indigo-700 font-medium">
-  Register as Student
-</router-link>
-          <router-link to="/register/company" class="bg-gray-200 px-6 py-3 rounded-lg shadow hover:bg-gray-300 font-medium">
-  Register as Company
-</router-link>
+          <router-link
+            to="/register/student"
+            class="bg-indigo-600 text-white px-6 py-3 rounded-lg shadow hover:bg-indigo-700 font-medium"
+          >
+            Register as Student
+          </router-link>
+          <router-link
+            to="/register/company"
+            class="bg-gray-200 px-6 py-3 rounded-lg shadow hover:bg-gray-300 font-medium"
+          >
+            Register as Company
+          </router-link>
         </div>
       </div>
     </section>
@@ -72,18 +74,16 @@ import { UserPlus, LogIn, FileEdit, Upload, ArrowRight } from "lucide-vue-next"
           </div>
         </div>
 
-        <!-- 👇 ДОБАВЛЕН твой красивый шаговый блок под существующими карточками -->
+        <!-- Steps block unchanged -->
         <div class="mt-20 relative">
           <h3 class="text-2xl font-semibold text-indigo-700 mb-12">Student Registration Steps</h3>
 
-          <!-- Connection Line -->
           <div
             class="absolute top-16 left-0 right-0 h-1 bg-gradient-to-r from-indigo-200 via-purple-200 to-indigo-200 mx-32"
             aria-hidden="true"
           ></div>
 
           <div class="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
-            <!-- Step 1 -->
             <div class="flex flex-col items-center text-center group relative">
               <div
                 class="w-32 h-32 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300 relative z-10"
@@ -106,7 +106,6 @@ import { UserPlus, LogIn, FileEdit, Upload, ArrowRight } from "lucide-vue-next"
               </div>
             </div>
 
-            <!-- Step 2 -->
             <div class="flex flex-col items-center text-center group relative">
               <div
                 class="w-32 h-32 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300 relative z-10"
@@ -129,7 +128,6 @@ import { UserPlus, LogIn, FileEdit, Upload, ArrowRight } from "lucide-vue-next"
               </div>
             </div>
 
-            <!-- Step 3 -->
             <div class="flex flex-col items-center text-center group relative">
               <div
                 class="w-32 h-32 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300 relative z-10"
@@ -152,7 +150,6 @@ import { UserPlus, LogIn, FileEdit, Upload, ArrowRight } from "lucide-vue-next"
               </div>
             </div>
 
-            <!-- Step 4 -->
             <div class="flex flex-col items-center text-center group relative">
               <div
                 class="w-32 h-32 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300 relative z-10"
@@ -179,3 +176,31 @@ import { UserPlus, LogIn, FileEdit, Upload, ArrowRight } from "lucide-vue-next"
     </footer>
   </div>
 </template>
+
+<script setup>
+import { UserPlus, LogIn, FileEdit, Upload, ArrowRight } from "lucide-vue-next"
+import { computed } from "vue"
+
+const hasValidToken = computed(() => {
+  if (typeof window === "undefined") return false
+  const token = window.localStorage.getItem("token")
+  return !!token
+})
+
+const profileRoute = computed(() => {
+  if (typeof window === "undefined") return "/login"
+
+  const role = window.localStorage.getItem("role")
+
+  switch (role) {
+    case "student":
+      return "/dashboard/student"
+    case "guarantor":
+      return "/dashboard/guarantor"
+    case "company":
+      return "/dashboard/company"
+    default:
+      return "/profile"
+  }
+})
+</script>

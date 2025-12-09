@@ -152,54 +152,16 @@
 </template>
 
 <script setup>
-
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { getAllInternships, changeInternshipStatus } from '@/api/internships'
 
-// Список стажировок теперь с бекенда
-const internships = ref([])
-
-// Загружаем стажировки с сервера
-const loadInternships = async () => {
-  try {
-    internships.value = await getAllInternships()
-  } catch (e) {
-    console.error('Failed to fetch internships', e)
-  }
-}
-
-onMounted(loadInternships)
-
-// Обновление статуса через бэк
-const updateStatus = async (id, newStatus) => {
-  try {
-    await changeInternshipStatus(id, newStatus)
-    await loadInternships() // перезагружаем данные
-  } catch (e) {
-    console.error('Failed to update status', e)
-  }
-}
-
-import { useRouter } from 'vue-router'
 const router = useRouter()
 
-const logout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('role')
-  router.push('/login')
-}
+// internships from backend
+const internships = ref([])
 
-import { ref, computed } from 'vue'
-
-// 📌 Список стажировок (пока локально)
-const internships = ref([
-  { id: 1, student: 'John Doe', company: 'ACME Corp', year: 2025, status: 'Pending' },
-  { id: 2, student: 'ХУЙ', company: 'DataMinds', year: 2025, status: 'Approved' },
-  { id: 3, student: 'Tom Brown', company: 'InnovateX', year: 2024, status: 'Rejected' },
-  { id: 4, student: 'Emily Davis', company: 'TechCorp', year: 2025, status: 'Pending' }
-])
-
-// 📌 Фильтры
+// filters
 const filters = ref({
   student: '',
   company: '',
@@ -207,59 +169,91 @@ const filters = ref({
   status: ''
 })
 
-// 📌 Доступные годы
+// available years (you can generate this dynamically if needed)
 const years = [2024, 2025, 2026]
 
-// 📌 Фильтрация
+// load internships from server
+const loadInternships = async () => {
+  try {
+    const list = await getAllInternships()
+
+    internships.value = Array.isArray(list) ? list : []
+  } catch (e) {
+    console.error('Failed to fetch internships', e)
+  }
+}
+
+onMounted(loadInternships)
+
+// filtered view
 const filteredInternships = computed(() => {
   return internships.value.filter(i => {
-    const matchesStudent = i.student.toLowerCase().includes(filters.value.student.toLowerCase())
-    const matchesCompany = i.company.toLowerCase().includes(filters.value.company.toLowerCase())
-    const matchesYear = !filters.value.year || i.year === Number(filters.value.year)
-    const matchesStatus = !filters.value.status || i.status === filters.value.status
+    const matchesStudent =
+      i.student?.toLowerCase().includes(filters.value.student.toLowerCase()) ?? false
+    const matchesCompany =
+      i.company?.toLowerCase().includes(filters.value.company.toLowerCase()) ?? false
+    const matchesYear =
+      !filters.value.year || i.year === Number(filters.value.year)
+    const matchesStatus =
+      !filters.value.status || i.status === filters.value.status
+
     return matchesStudent && matchesCompany && matchesYear && matchesStatus
   })
 })
 
-// 📌 Обновление статуса
-const updateStatus = (id, newStatus) => {
-  const internship = internships.value.find(i => i.id === id)
-  if (internship) internship.status = newStatus
-}
-
-// 📌 Экспорт CSV
-const exportReport = () => {
-  if (!filteredInternships.value.length) {
-    alert('No data to export!')
-    return
+// update status via backend and reload list
+const updateStatus = async (id, newStatus) => {
+  try {
+    await changeInternshipStatus(id, newStatus)
+    await loadInternships()
+  } catch (e) {
+    console.error('Failed to update status', e)
   }
-
-  // Создаём заголовки и строки CSV
-  const headers = ['Student', 'Company', 'Year', 'Status']
-  const rows = filteredInternships.value.map(i => [i.student, i.company, i.year, i.status])
-
-  const csvContent = [
-    headers.join(','), // заголовки
-    ...rows.map(r => r.join(',')) // строки
-  ].join('\n')
-
-  // Создаём Blob и ссылку для скачивания
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-
-  const filename = `internships_report_${new Date().getFullYear()}.csv`
-  link.setAttribute('href', url)
-  link.setAttribute('download', filename)
-  link.style.visibility = 'hidden'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-
-  console.log('✅ CSV exported:', filename)
 }
 
+// // export filtered table to CSV
+// const exportReport = () => {
+//   if (!filteredInternships.value.length) {
+//     alert('No data to export!')
+//     return
+//   }
+
+//   const headers = ['Student', 'Company', 'Year', 'Status']
+//   const rows = filteredInternships.value.map(i => [
+//     i.student,
+//     i.company,
+//     i.year,
+//     i.status
+//   ])
+
+//   const csvContent = [
+//     headers.join(','),
+//     ...rows.map(r => r.join(','))
+//   ].join('\n')
+
+//   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })//creates a blob, edit to use with a separate server
+//   const url = URL.createObjectURL(blob)
+//   const link = document.createElement('a')
+
+//   const filename = `internships_report_${new Date().getFullYear()}.csv`
+//   link.setAttribute('href', url)
+//   link.setAttribute('download', filename)
+//   link.style.visibility = 'hidden'
+//   document.body.appendChild(link)
+//   link.click()
+//   document.body.removeChild(link)
+
+//   console.log('CSV exported:', filename)
+// }
+
+// navigation helpers
 const goToCompanies = () => {
-  router.push("/guarantor/companies")
+  router.push('/guarantor/companies')
+}
+
+const logout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('role')
+  router.push('/login')
 }
 </script>

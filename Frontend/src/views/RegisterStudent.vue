@@ -121,7 +121,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
-import axios from '../api.js'
+import axios from '../api/api.js'
 
 const router = useRouter()
 

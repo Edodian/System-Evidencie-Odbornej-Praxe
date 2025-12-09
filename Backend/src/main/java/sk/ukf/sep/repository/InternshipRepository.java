@@ -5,7 +5,7 @@ import sk.ukf.sep.entity.Internship;
 
 import java.util.List;
 
-public interface InternshipRepository extends JpaRepository<Internship, Long> {
+public interface InternshipRepository extends JpaRepository<Internship, Integer> {
     List<Internship> findByUser_Id(int userId);
-    List<Internship> findByOrganization_Id(Long organizationId);
+    List<Internship> findByOrganization_Id(int organizationId);
 }

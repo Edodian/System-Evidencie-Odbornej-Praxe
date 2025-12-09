@@ -16,7 +16,7 @@ public class Internship {
     @Id
     @GeneratedValue
     @Column(name = "internship_id")
-    private Long id;
+    private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
