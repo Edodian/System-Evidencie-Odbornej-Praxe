@@ -7,6 +7,8 @@ import sk.ukf.sep.dto.OrganizationRegistrationDTO;
 import sk.ukf.sep.entity.Organization;
 import sk.ukf.sep.service.OrganizationService;
 
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/organization")
@@ -36,4 +38,14 @@ public class OrganizationController {
                 ? ResponseEntity.ok("Organization unverified successfully.")
                 : ResponseEntity.badRequest().body("Organization not found.");
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllOrganizations() {
+        var orgs = organizationService.getAllOrganizations();
+        var response = orgs.stream()
+                .map(o -> Map.of("id", o.getId(), "name", o.getName()))
+                .toList();
+        return ResponseEntity.ok(response);
+    }
+
 }
