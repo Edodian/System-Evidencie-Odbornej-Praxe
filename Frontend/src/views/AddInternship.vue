@@ -159,6 +159,15 @@ const goBack = () => {
   router.back()
 }
 
+await axios.post('/api/internship', {
+  organizationId: form.value.organizationId,
+  beginDate: form.value.startDate,
+  endDate: form.value.endDate,
+  note: form.value.description,
+  semester: form.value.semester
+})
+
+
 const form = ref({
   organizationId: "", // вместо company
   position: "",
