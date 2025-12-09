@@ -120,6 +120,13 @@
                 >
                   Upload Report
                 </button>
+                <button
+  @click="downloadPDF(internship.id)"
+  class="bg-green-100 text-green-700 px-3 py-1 rounded-lg hover:bg-green-200"
+>
+  Download PDF
+</button>
+
               </td>
             </tr>
           </tbody>
@@ -144,6 +151,20 @@ const studentName = ref('')
 const internships = ref([])
 const loadingInternships = ref(false)
 const internshipsError = ref('')
+
+const downloadPDF = async (internshipId) => {
+  try {
+    const res = await axios.get(`/api/internship/${internshipId}/pdf`, { responseType: 'blob' })
+    const url = URL.createObjectURL(res.data)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `internship_${internshipId}.pdf`
+    link.click()
+  } catch (err) {
+    console.error('Failed to download PDF:', err)
+  }
+}
+
 
 const fetchInternships = async (userId) => {
   if (!userId) {
