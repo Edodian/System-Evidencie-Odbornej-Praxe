@@ -22,11 +22,14 @@ public class OrganizationService {
                 .title(dto.getTitle())
                 .ico(dto.getIco())
                 .contactPhone(dto.getContactPhone())
+                .email(dto.getEmail())
+                .password(dto.getPassword())
                 .isVerified(false)
                 .build();
 
         return organizationRepository.save(organization);
     }
+
 
     public boolean verifyOrganization(Integer id) {
         return organizationRepository.findById(id)

@@ -7,4 +7,6 @@ public class OrganizationRegistrationDTO {
     private String title;
     private String ico;
     private String contactPhone;
+    private String email;
+    private String password;
 }
