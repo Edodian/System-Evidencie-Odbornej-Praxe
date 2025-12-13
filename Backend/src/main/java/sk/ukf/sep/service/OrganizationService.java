@@ -54,4 +54,20 @@ public class OrganizationService {
         return organizationRepository.findAll();
     }
 
+    public String login(String email, String password) {
+        Organization org = organizationRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
+        if (!org.getPassword().equals(password)) {
+            throw new RuntimeException("Invalid credentials");
+        }
+
+        if (!org.isVerified()) {
+            throw new RuntimeException("Organization is not verified");
+        }
+
+        return jwtConfig.generateToken(org.getEmail(), "ROLE_COMPANY");
+    }
+
+
 }
