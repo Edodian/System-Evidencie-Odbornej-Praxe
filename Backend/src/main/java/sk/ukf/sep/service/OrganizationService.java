@@ -1,5 +1,6 @@
 package sk.ukf.sep.service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import sk.ukf.sep.dto.OrganizationRegistrationDTO;
 import sk.ukf.sep.entity.Organization;
@@ -12,10 +13,16 @@ import java.util.List;
 public class OrganizationService {
 
     private final OrganizationRepository organizationRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public Organization registerOrganization(OrganizationRegistrationDTO dto) {
+
         if (organizationRepository.findByIco(dto.getIco()).isPresent()) {
             throw new IllegalArgumentException("Organization with this ICO already exists");
+        }
+
+        if (organizationRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Organization with this email already exists");
         }
 
         Organization organization = Organization.builder()
@@ -23,13 +30,12 @@ public class OrganizationService {
                 .ico(dto.getIco())
                 .contactPhone(dto.getContactPhone())
                 .email(dto.getEmail())
-                .password(dto.getPassword())
+                .password(passwordEncoder.encode(dto.getPassword()))
                 .isVerified(false)
                 .build();
 
         return organizationRepository.save(organization);
     }
-
 
     public boolean verifyOrganization(Integer id) {
         return organizationRepository.findById(id)
@@ -40,6 +46,7 @@ public class OrganizationService {
                 })
                 .orElse(false);
     }
+
     public boolean unverifyOrganization(Integer id) {
         return organizationRepository.findById(id)
                 .map(org -> {
