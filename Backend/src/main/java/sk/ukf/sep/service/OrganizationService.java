@@ -1,4 +1,5 @@
 package sk.ukf.sep.service;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ public class OrganizationService {
 
     private final OrganizationRepository organizationRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenService jwtTokenService;
 
     public Organization registerOrganization(OrganizationRegistrationDTO dto) {
 
@@ -35,6 +37,25 @@ public class OrganizationService {
                 .build();
 
         return organizationRepository.save(organization);
+    }
+
+    public String login(String email, String password) {
+
+        Organization org = organizationRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
+        if (!passwordEncoder.matches(password, org.getPassword())) {
+            throw new RuntimeException("Invalid credentials");
+        }
+
+        if (!org.isVerified()) {
+            throw new RuntimeException("Organization is not verified");
+        }
+
+        return jwtTokenService.generateToken(
+                org.getEmail(),
+                List.of("ROLE_COMPANY")
+        );
     }
 
     public boolean verifyOrganization(Integer id) {
@@ -60,21 +81,4 @@ public class OrganizationService {
     public List<Organization> getAllOrganizations() {
         return organizationRepository.findAll();
     }
-
-    public String login(String email, String password) {
-        Organization org = organizationRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
-
-        if (!org.getPassword().equals(password)) {
-            throw new RuntimeException("Invalid credentials");
-        }
-
-        if (!org.isVerified()) {
-            throw new RuntimeException("Organization is not verified");
-        }
-
-        return jwtConfig.generateToken(org.getEmail(), "ROLE_COMPANY");
-    }
-
-
 }
