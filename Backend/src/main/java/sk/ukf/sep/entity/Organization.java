@@ -39,4 +39,10 @@ public class Organization {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "email", nullable = false, unique = true, length = 128)
+    private String email;
+
+    @Column(name = "password", nullable = false)
+    private String password;
 }

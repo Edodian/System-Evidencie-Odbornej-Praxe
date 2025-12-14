@@ -3,6 +3,7 @@ package sk.ukf.sep.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import sk.ukf.sep.dto.OrganizationLoginDTO;
 import sk.ukf.sep.dto.OrganizationRegistrationDTO;
 import sk.ukf.sep.entity.Organization;
 import sk.ukf.sep.service.OrganizationService;
@@ -47,5 +48,12 @@ public class OrganizationController {
                 .toList();
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody OrganizationLoginDTO dto) {
+        String token = organizationService.login(dto.getEmail(), dto.getPassword());
+        return ResponseEntity.ok(Map.of("token", token));
+    }
+
 
 }
