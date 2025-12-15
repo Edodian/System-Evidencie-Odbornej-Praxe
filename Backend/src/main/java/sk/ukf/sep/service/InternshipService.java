@@ -27,30 +27,35 @@ public class InternshipService {
     // -------------------- CREATE --------------------
 
     public Internship registerInternship(InternshipDTO dto) {
+
         if (dto == null) {
             throw new IllegalArgumentException("InternshipDTO must not be null");
         }
+
         if (dto.getUserId() == null) {
             throw new IllegalArgumentException("userId must not be null");
         }
-        if (dto.getOrganizationId() == null) {
-            throw new IllegalArgumentException("organizationId must not be null");
-        }
 
-        // User.id is Integer
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() ->
                         new RuntimeException("User with ID " + dto.getUserId() + " not found"));
 
-        // Assuming Organization.id is Long – adjust if it's Integer in your entity
-        Organization organization = organizationRepository
-                .findById(dto.getOrganizationId())
-                .orElseThrow(() ->
-                        new RuntimeException("Organization with ID " + dto.getOrganizationId() + " not found"));
+        Organization organization = null;
+
+        if (!dto.isIndependent()) {
+            if (dto.getOrganizationId() == null) {
+                throw new IllegalArgumentException("organizationId must not be null for non-independent internship");
+            }
+
+            organization = organizationRepository.findById(dto.getOrganizationId())
+                    .orElseThrow(() ->
+                            new RuntimeException("Organization with ID " + dto.getOrganizationId() + " not found"));
+        }
 
         Internship internship = Internship.builder()
                 .user(user)
                 .organization(organization)
+                .independent(dto.isIndependent())
                 .beginDate(dto.getBeginDate())
                 .endDate(dto.getEndDate())
                 .note(dto.getNote())
@@ -64,12 +69,11 @@ public class InternshipService {
     // -------------------- UPDATE STATUS --------------------
 
     public void changeStatus(InternshipDTO dto) {
-        if (dto.getId() == null) {
-            throw new IllegalArgumentException("id must not be null");
+
+        if (dto.getId() == null || dto.getStatus() == null) {
+            throw new IllegalArgumentException("id and status must not be null");
         }
-        if (dto.getStatus() == null) {
-            throw new IllegalArgumentException("status must not be null");
-        }
+
         if (!STATUSES.contains(dto.getStatus())) {
             throw new IllegalArgumentException("Invalid status: " + dto.getStatus());
         }
@@ -82,45 +86,38 @@ public class InternshipService {
     // -------------------- MAPPING --------------------
 
     private InternshipDTO toDTO(Internship internship) {
+
         InternshipDTO dto = new InternshipDTO();
         dto.setId(internship.getId());
         dto.setUserId(internship.getUser().getId());
-        // If Organization.id is Integer, simply: dto.setOrganizationId(internship.getOrganization().getId());
-        dto.setOrganizationId(internship.getOrganization().getId().intValue());
+        dto.setIndependent(internship.isIndependent());
+
+        if (internship.getOrganization() != null) {
+            dto.setOrganizationId(internship.getOrganization().getId());
+        }
+
         dto.setBeginDate(internship.getBeginDate());
         dto.setEndDate(internship.getEndDate());
         dto.setNote(internship.getNote());
         dto.setStatus(internship.getStatus());
         dto.setSemester(internship.getSemester());
+
         return dto;
     }
 
-
     public Optional<InternshipDTO> findById(int id) {
-        // Internship.id is Integer, repository is <Internship, Integer>
-        return internshipRepository.findById(id)
-                .map(this::toDTO);
+        return internshipRepository.findById(id).map(this::toDTO);
     }
 
     public List<InternshipDTO> findByUserId(int userId) {
-        return internshipRepository.findByUser_Id(userId)
-                .stream()
-                .map(this::toDTO)
-                .toList();
+        return internshipRepository.findByUser_Id(userId).stream().map(this::toDTO).toList();
     }
 
     public List<InternshipDTO> findByOrganizationId(int organizationId) {
-        return internshipRepository.findByOrganization_Id(organizationId)
-                .stream()
-                .map(this::toDTO)
-                .toList();
+        return internshipRepository.findByOrganization_Id(organizationId).stream().map(this::toDTO).toList();
     }
 
     public List<InternshipDTO> findAll() {
-        return internshipRepository.findAll()
-                .stream()
-                .map(this::toDTO)
-                .toList();
+        return internshipRepository.findAll().stream().map(this::toDTO).toList();
     }
-
 }
