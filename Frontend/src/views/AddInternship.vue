@@ -20,29 +20,37 @@
       </h2>
 
       <form @submit.prevent="handleSubmit" class="space-y-5">
+
+        <!-- Independent internship -->
+        <div class="flex items-center gap-2">
+          <input
+            type="checkbox"
+            v-model="form.independent"
+            id="independent"
+          />
+          <label for="independent" class="text-gray-700">
+            Independent internship (no company)
+          </label>
+        </div>
+
         <!-- Company -->
         <div>
           <select
-  v-model="form.organizationId"
-  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
->
-  <option value="">Select company</option>
-  <option v-for="org in organizations" :key="org.id" :value="org.id">
-    {{ org.name }}
-  </option>
-</select>
-
-        </div>
-
-        <!-- Position -->
-        <div>
-          <label class="block text-gray-700 mb-2">Position</label>
-          <input
-            type="text"
-            v-model="form.position"
-            placeholder="e.g. Frontend Developer Intern"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
-          />
+            v-model="form.organizationId"
+            :disabled="form.independent"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2
+                   focus:ring-indigo-500 focus:border-indigo-500
+                   disabled:bg-gray-100 disabled:text-gray-400"
+          >
+            <option value="">Select company</option>
+            <option
+              v-for="org in organizations"
+              :key="org.id"
+              :value="org.id"
+            >
+              {{ org.name }}
+            </option>
+          </select>
         </div>
 
         <!-- Semester -->
@@ -106,7 +114,7 @@
         v-if="submitted"
         class="mt-6 text-center text-green-600 font-medium bg-green-50 py-3 rounded-lg"
       >
-        Internship successfully submitted! Preparing PDF...
+        Internship successfully submitted!
         <br />
         Redirecting to dashboard...
       </div>
@@ -117,15 +125,15 @@
 <script setup>
 import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router"
-import axios from '../api/api.js'
+import axios from "../api/api.js"
 
 const router = useRouter()
 
 const organizations = ref([])
 
 const form = ref({
-  organizationId: "",
-  position: "",
+  organizationId: null,
+  independent: false,
   semester: "",
   startDate: "",
   endDate: "",
@@ -136,24 +144,23 @@ const submitted = ref(false)
 
 onMounted(async () => {
   try {
-    const res = await axios.get('/api/organization/all')
+    const res = await axios.get("/api/organization/all")
     organizations.value = res.data
   } catch (err) {
-    console.error('Failed to load organizations:', err)
+    console.error("Failed to load organizations:", err)
   }
 })
 
 const handleSubmit = async () => {
-  console.log("Internship submitted:", form.value)
-
   try {
-    await axios.post('/api/internship', {
-      organizationId: form.value.organizationId,
+    await axios.post("/api/internship/register", {
+      userId: 1, // ⚠️ замени на реальный userId из auth / store
+      organizationId: form.value.independent ? null : form.value.organizationId,
+      independent: form.value.independent,
       beginDate: form.value.startDate,
       endDate: form.value.endDate,
       note: form.value.description,
-      semester: form.value.semester,
-      position: form.value.position
+      semester: form.value.semester
     })
 
     submitted.value = true
@@ -170,4 +177,3 @@ const goBack = () => {
   router.back()
 }
 </script>
-
