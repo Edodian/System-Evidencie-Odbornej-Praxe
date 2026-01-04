@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class Organization {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "organization_id")
@@ -48,3 +47,4 @@ public class Organization {
     @Column(name = "password", nullable = false)
     private String password;
 }
+

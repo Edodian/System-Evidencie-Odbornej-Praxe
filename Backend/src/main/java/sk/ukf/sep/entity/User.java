@@ -8,6 +8,8 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import sk.ukf.sep.util.PasswordUtil;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -16,47 +18,52 @@ import java.time.LocalDateTime;
 @ToString(exclude = "pwd")
 public class User {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Integer id;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 64)
     private String email;
 
-    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)
     private String pwd;
-    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)
     private String tempPwd;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 32)
     private String name;
-    @Column(nullable = false)
+
+    @Column(nullable = false, length = 32)
     private String surname;
-    @Column(nullable = false)
+
+    @Column(nullable = false, length = 16)
     private String role;
 
-    @Column(name = "alt_email")
+    @Column(name = "alt_email", length = 64)
     private String altEmail;
-    @Column(name = "phone")
+
+    @Column(length = 20)
     private String phone;
-    @Column
+
+    @Column(length = 32)
     private String field;
 
-//    @Column(name = "must_change_pwd", nullable = false)
-//    private boolean mustChangePwd = true;
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
-    @org.hibernate.annotations.CreationTimestamp
-    private java.time.LocalDateTime createdAt;
-    @org.hibernate.annotations.UpdateTimestamp
-    private java.time.LocalDateTime updatedAt;
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @PrePersist
     private void ensurePassword() {
-        if ((this.pwd == null || this.pwd.isBlank())&&(this.tempPwd == null || this.tempPwd.isBlank())) {
-            this.tempPwd = sk.ukf.sep.util.PasswordUtil.generate(8); // no hashing for now
+        if ((this.pwd == null || this.pwd.isBlank()) && (this.tempPwd == null || this.tempPwd.isBlank())) {
+            this.tempPwd = PasswordUtil.generate(8);
         }
-//        this.mustChangePwd = true; // new account pwd change
     }
 }
+
