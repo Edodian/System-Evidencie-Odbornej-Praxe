@@ -2,8 +2,11 @@ package sk.ukf.sep.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "internship")
@@ -13,14 +16,13 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class Internship {
-
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "internship_id")
     private Integer id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(optional = true)
@@ -39,15 +41,18 @@ public class Internship {
     @Column
     private String note;
 
-    @Column
+    @Column(length = 16)
     private String status;
 
-    @Column
+    @Column(length = 16)
     private String semester;
 
-    @org.hibernate.annotations.CreationTimestamp
-    private java.time.LocalDateTime createdAt;
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
-    @org.hibernate.annotations.UpdateTimestamp
-    private java.time.LocalDateTime updatedAt;
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
+
