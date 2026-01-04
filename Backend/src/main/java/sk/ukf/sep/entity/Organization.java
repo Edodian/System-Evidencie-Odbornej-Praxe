@@ -1,4 +1,5 @@
 package sk.ukf.sep.entity;
+
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -29,8 +30,9 @@ public class Organization {
     @Column(name = "contact_phone", nullable = false, length = 20)
     private String contactPhone;
 
+    @Builder.Default
     @Column(name = "is_verified", nullable = false)
-    private boolean isVerified = false; // default unverified
+    private boolean isVerified = false;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
