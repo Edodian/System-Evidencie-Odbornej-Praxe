@@ -44,7 +44,7 @@ public class OrganizationController {
     public ResponseEntity<?> getAllOrganizations() {
         var orgs = organizationService.getAllOrganizations();
         var response = orgs.stream()
-                .map(o -> Map.of("id", o.getId(), "name", o.getName()))
+                .map(o -> Map.of("id", o.getId(), "name", o.getTitle()))
                 .toList();
         return ResponseEntity.ok(response);
     }
