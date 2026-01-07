@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # MariaDB
@@ -11,7 +11,7 @@ services:
       MYSQL_DATABASE: sep_dev
       MYSQL_USER: appuser
       MYSQL_PASSWORD: apppassword
-      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_HOST: "%"
     ports:
       - "3306:3306"
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -41,10 +41,11 @@ services:
       # SPRING_DATASOURCE_PASSWORD: apppassword
     ports:
       - "8081:8081"
-      - "5005:5005"  # Debug port
+      - "5005:5005" # Debug port
     volumes:
       - ./Backend:/app:Z
       - maven_cache:/root/.m2:Z
+      - ./Documents:/documents:Z
     networks:
       - app-network
     depends_on:
@@ -78,8 +79,8 @@ services:
     container_name: dev-mailpit
     restart: unless-stopped
     ports:
-      - "8025:8025"  # Web UI
-      - "1025:1025"  # SMTP port
+      - "8025:8025" # Web UI
+      - "1025:1025" # SMTP port
     networks:
       - app-network
 
@@ -91,3 +92,4 @@ volumes:
   mariadb_data:
   maven_cache:
   frontend_node_modules:
+  documents:
