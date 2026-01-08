@@ -1,5 +1,6 @@
 package sk.ukf.sep.controller;
 
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -9,10 +10,8 @@ import org.springframework.web.multipart.MultipartFile;
 import sk.ukf.sep.entity.Document;
 import sk.ukf.sep.service.DocumentService;
 
-import java.io.IOException;
-
 @RestController
-@RequestMapping("/api/documents")
+@RequestMapping("/api/document")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class DocumentController {
