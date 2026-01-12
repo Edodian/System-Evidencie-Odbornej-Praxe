@@ -25,7 +25,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
+  # Keycloak (OAuth 2.0 Authorization Server)
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5.0
+    container_name: dev-keycloak
+    restart: unless-stopped
+    command: start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
   # Spring Boot backend
   backend:
     build:

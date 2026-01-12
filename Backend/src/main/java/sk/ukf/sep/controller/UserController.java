@@ -1,20 +1,17 @@
 package sk.ukf.sep.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import sk.ukf.sep.entity.User;
 import sk.ukf.sep.repository.UserRepository;
 import sk.ukf.sep.service.EmailService;
+import sk.ukf.sep.service.KeycloakOAuthService;
 import sk.ukf.sep.util.PasswordUtil;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -26,13 +23,7 @@ public class UserController {
 
     private final UserRepository repository;
     private final EmailService emailService;
-
-
-    private final JwtEncoder jwtEncoder;
-
-    // token lifetime defined in application yaml
-    @Value("${jwt.expires-in-seconds:3600}")
-    private long jwtExpiresInSeconds;
+    private final KeycloakOAuthService keycloakOAuthService;
 
     private boolean hasFinalPassword(User u) {
         return u.getPwd() != null && !u.getPwd().isBlank();
@@ -53,6 +44,19 @@ public class UserController {
         }
         LocalDateTime now = LocalDateTime.now();
         return !updatedAt.isBefore(now.minusMinutes(5));
+    }
+
+    private String resolveEmailFromJwt(Jwt jwt) {
+        if (jwt == null) return null;
+
+        String email = jwt.getClaimAsString("email");
+        if (email != null && !email.isBlank()) return email;
+
+        String preferred = jwt.getClaimAsString("preferred_username");
+        if (preferred != null && !preferred.isBlank()) return preferred;
+
+        // fallback for older local tokens
+        return jwt.getSubject();
     }
 
     @PostMapping("/register")
@@ -105,9 +109,6 @@ public class UserController {
                     .body(Map.of("error", "Invalid email or password."));
         }
 
-        System.out.println("DEBUG DB pwd='" + u.getPwd() + "', equals? " + u.getPwd().equals(password)
-                + ", hasFinalPassword=" + hasFinalPassword(u));
-
         if (requiresPasswordCreation(u)) {
             System.out.println("DEBUG requiresPasswordCreation=true, returning 403");
             String newTemp = PasswordUtil.generate(8);
@@ -132,8 +133,7 @@ public class UserController {
                     ));
         }
 
-        //  bcrypt
-        // if (!hasFinalPassword(u) || !passwordEncoder.matches(password, u.getPwd())) {
+        // Keep existing DB password check (unchanged behavior)
         if (!hasFinalPassword(u) || !u.getPwd().equals(password)) {
             System.out.println("DEBUG password mismatch or no final pwd, returning 401");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -146,32 +146,27 @@ public class UserController {
             repository.save(u);
         }
 
-        Instant now = Instant.now();
-        Instant expiry = now.plusSeconds(jwtExpiresInSeconds);
+        // OAuth2 Direct Grant via Keycloak (backend only; frontend never talks to Keycloak)
+        try {
+            Map<String, Object> token;
+            try {
+                token = keycloakOAuthService.passwordGrant(email, password);
+            } catch (Exception firstTry) {
+                String role = (u.getRole() == null) ? "STUDENT" : u.getRole().toString();
+                keycloakOAuthService.upsertUserWithPasswordAndRole(email, password, role);
+                token = keycloakOAuthService.passwordGrant(email, password);
+            }
 
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("sep")
-                .issuedAt(now)
-                .expiresAt(expiry)
-                .subject(u.getEmail())
-                .claim("uid", u.getId())
-                .claim("role", u.getRole())
-                .build();
-
-        // tell encoder we use HS256
-        JwsHeader jwsHeader = JwsHeader.with(MacAlgorithm.HS256).build();
-
-        JwtEncoderParameters params = JwtEncoderParameters.from(jwsHeader, claims);
-
-        String token = jwtEncoder.encode(params).getTokenValue();
-
-        return ResponseEntity.ok(Map.of(
-                "access_token", token,
-                "token_type", "Bearer",
-                "expires_in", jwtExpiresInSeconds
-        ));
+            return ResponseEntity.ok(Map.of(
+                    "access_token", token.get("access_token"),
+                    "token_type", token.getOrDefault("token_type", "Bearer"),
+                    "expires_in", token.getOrDefault("expires_in", 0)
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(Map.of("error", "Authentication service unavailable."));
+        }
     }
-
 
     @PostMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout() {
@@ -180,14 +175,14 @@ public class UserController {
 
     @GetMapping("/profile")
     public ResponseEntity<Map<String, Object>> getProfile(
-            @AuthenticationPrincipal Jwt jwt // get user info from JWT
+            @AuthenticationPrincipal Jwt jwt
     ) {
         if (jwt == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "You must be logged in."));
         }
 
-        String email = jwt.getSubject(); // subject set in login() when issuing token
+        String email = resolveEmailFromJwt(jwt);
 
         User u = repository.findByEmail(email);
         if (u == null) {
@@ -195,7 +190,6 @@ public class UserController {
                     .body(Map.of("error", "User not found."));
         }
 
-        // block access if pwd does not exist
         if (requiresPasswordCreation(u)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "Create your password first using the temporary code sent to your email."));
@@ -226,7 +220,7 @@ public class UserController {
         String resetCode = PasswordUtil.generate(8);
 
         u.setTempPwd(resetCode);
-        repository.save(u); //updated at registers a new tempPwd
+        repository.save(u);
 
         try {
             emailService.sendPasswordResetCode(
@@ -246,7 +240,7 @@ public class UserController {
     @PostMapping("/change-password")
     public ResponseEntity<Map<String, Object>> changePassword(
             @RequestBody Map<String, String> req,
-            @AuthenticationPrincipal Jwt jwt // use authenticated user from JWT
+            @AuthenticationPrincipal Jwt jwt
     ) {
         if (jwt == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -261,21 +255,16 @@ public class UserController {
                     .body(Map.of("error", "Missing required fields."));
         }
 
-        String email = jwt.getSubject(); // ignore email from body; use token subject
+        String email = resolveEmailFromJwt(jwt);
         User u = repository.findByEmail(email);
 
-        // bcrypt
-        // if (u == null || !hasFinalPassword(u) || !passwordEncoder.matches(oldPassword, u.getPwd())) {
         if (u == null || !hasFinalPassword(u) || !u.getPwd().equals(oldPassword)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid credentials."));
         }
 
-        // bcrypt
-        // u.setPwd(passwordEncoder.encode(newPassword));
         u.setPwd(newPassword);
 
-        //cleaning temppwd just in case
         if (hasTempPassword(u)) {
             u.setTempPwd("");
         }
@@ -287,13 +276,7 @@ public class UserController {
                 "message", "Password successfully changed."
         ));
     }
-     /**
-     * json body:
-     * - email - realise autofill via vue
-     * - tempPassword - should be no older than 5 minutes, realise autofill via vue
-     * - newPassword
-     * - confirmPassword
-     */
+
     @PostMapping("/create-password")
     public ResponseEntity<Map<String, Object>> createPassword(
             @RequestBody Map<String, String> req
@@ -329,24 +312,13 @@ public class UserController {
                     .body(Map.of("error", "No active temporary password for this account."));
         }
 
-        // 5 minutes pass check (still optional)
-        // if (!isTempPasswordStillValid(u)) {
-        //     return ResponseEntity.status(HttpStatus.FORBIDDEN)
-        //             .body(Map.of(
-        //                     "status", "TEMPORARY_PASSWORD_EXPIRED",
-        //                     "message", "Temporary password has expired. Please request a new reset code."
-        //             ));
-        // }
-
         if (!u.getTempPwd().equals(tempPassword)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid temporary password."));
         }
 
-        // bcrypt
-        // u.setPwd(passwordEncoder.encode(newPassword)); // actual pwd set (hashed)
-        u.setPwd(newPassword); // actual pwd set (plain, for now)
-        u.setTempPwd("");      // temp pwd clean
+        u.setPwd(newPassword);
+        u.setTempPwd("");
         repository.save(u);
 
         return ResponseEntity.ok(Map.of(
