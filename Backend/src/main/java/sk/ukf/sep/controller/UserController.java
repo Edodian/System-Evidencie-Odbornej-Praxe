@@ -153,9 +153,17 @@ public class UserController {
                 token = keycloakOAuthService.passwordGrant(email, password);
             } catch (Exception firstTry) {
                 String role = (u.getRole() == null) ? "STUDENT" : u.getRole().toString();
+
+                // create / sync user in Keycloak
                 keycloakOAuthService.upsertUserWithPasswordAndRole(email, password, role);
+
+                // 🔥 CRITICAL: sync password into MariaDB
+                u.setPwd(password);
+                repository.save(u);
+
                 token = keycloakOAuthService.passwordGrant(email, password);
             }
+
 
             return ResponseEntity.ok(Map.of(
                     "access_token", token.get("access_token"),

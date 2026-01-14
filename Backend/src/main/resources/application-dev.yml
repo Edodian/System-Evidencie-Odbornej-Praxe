@@ -7,3 +7,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
+
+keycloak:
+  base-url: http://dev-keycloak:8080
+  realm: sep
+  client-id: sep-backend
+  client-secret: dev-secret-123
+  admin-username: admin
+  admin-password: admin
